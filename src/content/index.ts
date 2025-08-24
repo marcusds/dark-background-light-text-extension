@@ -3,12 +3,14 @@ import type {
   AddonOptions,
   ConfiguredPages,
   ConfiguredTabs,
-  MethodIndex,
   MethodExecutor,
+  MethodIndex,
   MethodMetadataWithExecutors,
 } from '../common/types';
 import { methods } from '../methods/methods-with-executors';
 import { generate_urls } from '../common/generate-urls';
+import { isPageDark } from '../methods/isPageDark';
+import { DISABLED_ID } from '../methods/methods';
 
 declare const browser: Browser;
 
@@ -31,7 +33,7 @@ declare global {
     merged_configured: ConfiguredPages;
     configured_tabs: ConfiguredTabs;
     rendered_stylesheets: { [key: string]: string };
-    do_it: (changes: { [s: string]: Storage.StorageChange }) => Promise<void>;
+    do_it: (changes: { [s: string]: Storage.StorageChange }, forceMethod?: MethodIndex) => Promise<void>;
   }
 }
 
@@ -41,9 +43,55 @@ if (typeof window.content_script_state === 'undefined') {
   window.content_script_state = 'normal_order';
 }
 
+async function is_default_method(
+  url: string,
+): Promise<boolean> {
+  if (window.prefs.enabled) {
+    if (is_iframe) {
+      const parent_method_number = await browser.runtime.sendMessage({
+        action: 'query_parent_method_number',
+      });
+      if (methods[parent_method_number].affects_iframes) {
+        return false;
+      } else if (url === 'about:blank' || url === 'about:srcdoc') {
+        return false;
+      }
+    }
+    // TODO: get rid of await here, https://bugzilla.mozilla.org/show_bug.cgi?id=1574713
+    let tab_configuration: MethodIndex | boolean = false;
+    if (Object.keys(window.configured_tabs).length > 0) {
+      const tabId = await tabId_promise;
+      tab_configuration = Object.prototype.hasOwnProperty.call(
+        window.configured_tabs,
+        tabId,
+      )
+        ? window.configured_tabs[tabId]
+        : false;
+    }
+
+    if (tab_configuration !== false) {
+      return true;
+    }
+
+    const configured_urls = Object.keys(window.merged_configured);
+    for (const gen_url of generate_urls(url)) {
+      if (configured_urls.indexOf(gen_url) >= 0) {
+        return false;
+      }
+    }
+    return true;
+  } else {
+    return false;
+  }
+}
+
 async function get_method_for_url(
   url: string,
+  forceMethod?: MethodIndex,
 ): Promise<MethodMetadataWithExecutors> {
+  if(forceMethod !== undefined) {
+    return methods[forceMethod];
+  }
   if (window.prefs.enabled) {
     if (is_iframe) {
       const parent_method_number = await browser.runtime.sendMessage({
@@ -92,11 +140,66 @@ let current_method_promise: Promise<MethodMetadataWithExecutors> = new Promise(
   },
 );
 let current_method_executor: MethodExecutor | undefined;
+
+// Move dark mode check and persistence to its own function and listener
+async function checkAndPersistDarkPage() {
+  const isDefaultMethod = await is_default_method(window.document.documentURI) || await is_default_method(window.location.hostname);
+  if (!isDefaultMethod) return;
+  if (isPageDark()) {
+    const urlKey = generate_urls(window.document.documentURI)[0];
+    if (!window.merged_configured[urlKey] || window.merged_configured[urlKey] !== DISABLED_ID) {
+      const tabId = await tabId_promise;
+      const url = window.configured_tabs?.[tabId]
+      await browser.runtime.sendMessage({
+        action: 'set_configured_page',
+        key: url,
+        value: DISABLED_ID,
+      });
+      window.do_it({}, DISABLED_ID);
+    }
+  }
+}
+
+// Listen for classList changes on <body> and <html> to re-check dark mode
+/*
+function observeClassListChanges() {
+  const callback = (mutationsList: MutationRecord[]) => {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+        checkAndPersistDarkPage();
+        break;
+      }
+    }
+  };
+  const config = { attributes: true, attributeFilter: ['class'] };
+  const body = document.body;
+  const html = document.documentElement;
+  if (body) {
+    new MutationObserver(callback).observe(body, config);
+  }
+  if (html) {
+    new MutationObserver(callback).observe(html, config);
+  }
+}
+*/
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  checkAndPersistDarkPage();
+  //observeClassListChanges();
+});
+
+document.onreadystatechange = () => {
+  if (document.readyState === "interactive") {
+    //checkAndPersistDarkPage();
+  }
+};
+
 window.do_it = async function do_it(changes: {
   [s: string]: Storage.StorageChange;
-}) {
+}, forceMethod?: MethodIndex): Promise<void> {
   try {
-    const new_method = await get_method_for_url(window.document.documentURI);
+    const new_method = await get_method_for_url(window.document.documentURI, forceMethod);
     if (resolve_current_method_promise) {
       resolve_current_method_promise(new_method);
       resolve_current_method_promise = null;
@@ -106,7 +209,7 @@ window.do_it = async function do_it(changes: {
     if (
       !current_method
       || new_method.number !== current_method.number
-      || Object.keys(changes).some((key) => key.indexOf('_color') >= 0) // TODO: better condition
+      || Object.keys(changes).some((key) => key.indexOf('_color') >= 0)
     ) {
       for (const node of document.querySelectorAll(
         'style[class="dblt-ykjmwcnxmi"]',
@@ -123,8 +226,6 @@ window.do_it = async function do_it(changes: {
           ];
         document.documentElement.appendChild(style_node);
         if (!document.body) {
-          // this should move our element after <body>
-          // which is important in specificity fight
           document.addEventListener('DOMContentLoaded', () => {
             document.documentElement.appendChild(style_node);
           });
@@ -135,7 +236,6 @@ window.do_it = async function do_it(changes: {
         current_method_executor = undefined;
       }
       if (new_method.executor) {
-        // eslint-disable-next-line new-cap
         current_method_executor = new new_method.executor(window, window.prefs);
         current_method_executor.load_into_window();
       }

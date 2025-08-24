@@ -26,6 +26,7 @@ import { methods } from '../methods/methods-with-stylesheets';
 import { relative_luminance, strip_alpha } from '../common/color_utils';
 import { modify_cors, modify_csp, version_lt } from './lib';
 import * as base_style from '../methods/stylesheets/base';
+import { method_change } from '../methods/setMethod';
 
 declare const browser: Browser;
 
@@ -174,6 +175,24 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
           { action: 'get_method_number' },
           { frameId: 0 },
         );
+      case 'set_configured_page':
+        let parsed;
+        if(!message.key) {
+          const current_tab = (
+            await browser.tabs.query({
+              //                    popup in the new Fenix is now in a separate window
+              currentWindow:
+                (await browser.runtime.getPlatformInfo()).os === 'android'
+                  ? undefined
+                  : true,
+              active: true,
+            })
+          )[0];
+          const url = current_tab.url!;
+           parsed = new URL(url);
+        }
+        await method_change(message.key || parsed?.host, message.value);
+        break;
       default:
         console.error('bad message 2!', message);
         break;

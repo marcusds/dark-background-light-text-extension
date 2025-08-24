@@ -1,15 +1,12 @@
 /* eslint-disable no-shadow */
 import type { Browser } from 'webextension-polyfill';
-import {
-  get_merged_configured_common,
-  get_prefs,
-  set_pref,
-} from '../common/shared';
+import { get_merged_configured_common, get_prefs, set_pref, } from '../common/shared';
 import { methods } from '../methods/methods';
 import { hint_marker } from '../common/generate-urls';
 import { smart_generate_urls } from '../common/smart-generate-urls';
 import type { ConfiguredPages } from '../common/types';
 import '../common/ui-style';
+import { CURRENT_TAB_LABEL } from '../consts';
 
 declare const browser: Browser;
 
@@ -53,7 +50,7 @@ declare const browser: Browser;
     return { list: result_list, preselect };
   }
 
-  const CURRENT_TAB_LABEL = '< Current Tab >';
+
   const current_tab = (
     await browser.tabs.query({
       //                    popup in the new Fenix is now in a separate window

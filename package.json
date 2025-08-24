@@ -1,7 +1,9 @@
 {
   "scripts": {
     "build": "rollup -c --failAfterWarnings",
-    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' nyc --reporter='../../coverage-relative-json-summary' --reporter=html --reporter=text mocha"
+    "watch": "rollup -c --failAfterWarnings --watch",
+    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' nyc --reporter='../../coverage-relative-json-summary' --reporter=html --reporter=text mocha",
+    "build:firefox": "npm run build && cd dist/ && bestzip ../extension.zip *"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.0",
@@ -14,6 +16,7 @@
     "@typescript-eslint/eslint-plugin": "^5.47.1",
     "@typescript-eslint/parser": "^5.47.1",
     "assert": "^2.0.0",
+    "bestzip": "^2.2.1",
     "eslint": "^8.31.0",
     "eslint-config-prettier": "^8.6.0",
     "eslint-import-resolver-typescript": "^3.5.2",

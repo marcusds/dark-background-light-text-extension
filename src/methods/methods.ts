@@ -1,10 +1,10 @@
-import type { MethodsMetadataBare } from '../common/types';
+import type { MethodIndex, MethodsMetadataBare } from '../common/types';
 
-export const DEFAULT_ID = '-1';
-export const DISABLED_ID = '0';
-export const STYLESHEET_PROCESSOR_ID = '1';
-export const SIMPLE_CSS_ID = '2';
-export const INVERT_ID = '3';
+export const DEFAULT_ID = '-1' as MethodIndex;
+export const DISABLED_ID = '0' as MethodIndex;
+export const STYLESHEET_PROCESSOR_ID = '1' as MethodIndex;
+export const SIMPLE_CSS_ID = '2' as MethodIndex;
+export const INVERT_ID = '3' as MethodIndex;
 
 export const methods: MethodsMetadataBare = {
   [DEFAULT_ID]: {
