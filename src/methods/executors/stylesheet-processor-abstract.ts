@@ -92,7 +92,7 @@ export abstract class StylesheetProcessorAbstract {
 
   load_into_window() {
     this.process();
-    this.handle_visibilitychange = (_unusedEvent) => {
+    this.handle_visibilitychange = () => {
       if (this.stop) {
         return;
       }
@@ -108,7 +108,7 @@ export abstract class StylesheetProcessorAbstract {
       'visibilitychange',
       this.handle_visibilitychange,
     );
-    this.window.addEventListener('unload', (_unusedEvent) => {
+    this.window.addEventListener('unload', () => {
       this.unload_from_window(true);
       // TODO: may be move it to stylesheet-processor.js?
     });

@@ -77,6 +77,7 @@ declare const browser: Browser;
       code: '{}',
       runAt: 'document_start',
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_e) {
     message = `Modification of this page is not available due to ${
       (await browser.runtime.getBrowserInfo()).name

@@ -20,7 +20,8 @@ try {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const e = undefined;
   is_iframe = window.self !== window.top;
-} catch (_unused) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+} catch (_err) {
   is_iframe = true;
 }
 
@@ -252,7 +253,7 @@ interface GetMethodNumberMsg {
   action: 'get_method_number';
 }
 browser.runtime.onMessage.addListener(
-  async (message: GetMethodNumberMsg, _unusedSender) => {
+  async (message: GetMethodNumberMsg) => {
     try {
       // TODO: statically typed runtime.onMessage
       if (!message.action) {

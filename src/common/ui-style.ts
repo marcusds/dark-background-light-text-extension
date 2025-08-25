@@ -19,7 +19,7 @@ export async function query_style() {
 if (document.readyState === 'loading') {
   document.addEventListener(
     'readystatechange',
-    (_unusedEvent) => {
+    () => {
       query_style().catch((rejection) => console.error(rejection));
     },
     { once: true },
