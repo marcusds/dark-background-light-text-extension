@@ -23,7 +23,7 @@ jobs:
       - name: Increment patch version in manifest.json
         id: bump_version
         run: |
-          node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync('manifest.json','utf8'));let [maj,min,pat]=m.version.split('.').map(Number);pat++;m.version=[maj,min,pat].join('.');fs.writeFileSync('manifest.json',JSON.stringify(m,null,2)+'\n');fs.appendFileSync(process.env.GITHUB_OUTPUT,`new_version=${m.version}\n`);"
+          node -e 'const fs=require("fs");const m=JSON.parse(fs.readFileSync("manifest.json","utf8"));let [maj,min,pat]=m.version.split(".").map(Number);pat++;m.version=[maj,min,pat].join(".");fs.writeFileSync("manifest.json",JSON.stringify(m,null,2)+"\n");fs.appendFileSync(process.env.GITHUB_OUTPUT,`new_version=${m.version}\n`);'
 
       - name: Build Firefox extension
         run: npm run build:firefox
