@@ -37,28 +37,24 @@ jobs:
           file_pattern: manifest.json
           branch: main
 
+      - name: Check if src or manifest.json version changed
+        id: should_tag
+        run: |
+          set -e
+          # Check if any files in src/ changed in the last commit
+          src_changed=$(git diff-tree --no-commit-id --name-only -r HEAD | grep '^src/' || true)
+          # Check if manifest.json version changed in the last commit
+          version_changed=$(git diff-tree -p HEAD -- manifest.json | grep '^[+-] *"version"' || true)
+          if [ -n "$src_changed" ] || [ -n "$version_changed" ]; then
+            echo "should_tag=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_tag=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Create and push tag
+        if: steps.should_tag.outputs.should_tag == 'true'
         uses: rickstaa/action-create-tag@v1
         with:
           tag: v${{ steps.bump_version.outputs.new_version }}
           message: 'Release v${{ steps.bump_version.outputs.new_version }}'
           force_push_tag: true
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.bump_version.outputs.new_version }}
-          name: Firefox Extension v${{ steps.bump_version.outputs.new_version }}
-          body: 'Automated release of Firefox extension.'
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload XPI to Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: extension.xpi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
