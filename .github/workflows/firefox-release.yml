@@ -1,60 +1,58 @@
-name: Firefox Extension Release
+name: Build and Release Firefox Extension
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-  build-and-release:
+  test-and-build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '22'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Increment patch version in manifest.json
-        id: bump_version
-        run: |
-          node -e 'const fs=require("fs");const m=JSON.parse(fs.readFileSync("manifest.json","utf8"));let [maj,min,pat]=m.version.split(".").map(Number);pat++;m.version=[maj,min,pat].join(".");fs.writeFileSync("manifest.json",JSON.stringify(m,null,2)+"\n");fs.appendFileSync(process.env.GITHUB_OUTPUT,`new_version=${m.version}\n`);'
+      - name: Run tests
+        run: npm test
 
-      - name: Build Firefox extension
+      - name: Build Firefox extension (first pass)
         run: npm run build:firefox
 
-      - name: Commit and push manifest.json version bump
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'chore: bump manifest.json patch version to ${{ steps.bump_version.outputs.new_version }}'
-          file_pattern: manifest.json
-          branch: main
-
-      - name: Check if src or manifest.json version changed
-        id: should_tag
+      - name: Increment patch version in manifest.json
+        id: version_bump
         run: |
-          set -e
-          # Check if any files in src/ changed in the last commit
-          src_changed=$(git diff-tree --no-commit-id --name-only -r HEAD | grep '^src/' || true)
-          # Check if manifest.json version changed in the last commit
-          version_changed=$(git diff-tree -p HEAD -- manifest.json | grep '^[+-] *"version"' || true)
-          if [ -n "$src_changed" ] || [ -n "$version_changed" ]; then
-            echo "should_tag=true" >> $GITHUB_OUTPUT
-          else
-            echo "should_tag=false" >> $GITHUB_OUTPUT
-          fi
+          node .github/scripts/increment-manifest-version.js
 
-      - name: Create and push tag
-        if: steps.should_tag.outputs.should_tag == 'true'
-        uses: rickstaa/action-create-tag@v1
+      - name: Build Firefox extension (second pass)
+        run: npm run build:firefox
+
+      - name: Get version from manifest.json
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./manifest.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Upload extension artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag: v${{ steps.bump_version.outputs.new_version }}
-          message: 'Release v${{ steps.bump_version.outputs.new_version }}'
-          force_push_tag: true
+          name: extension-xpi
+          path: extension.xpi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: Firefox Extension v${{ steps.get_version.outputs.version }}
+          files: extension.xpi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
