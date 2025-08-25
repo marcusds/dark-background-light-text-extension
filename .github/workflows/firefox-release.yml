@@ -28,6 +28,15 @@ jobs:
       - name: Build Firefox extension
         run: npm run build:firefox
 
+      - name: Commit and push manifest.json version bump
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: bump manifest.json patch version to ${{ steps.bump_version.outputs.new_version }}'
+          file_pattern: manifest.json
+          branch: main
+          tag_name: v${{ steps.bump_version.outputs.new_version }}
+          tag_message: 'Release v${{ steps.bump_version.outputs.new_version }}'
+
       - name: Create GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -46,10 +55,3 @@ jobs:
           files: extension.xpi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Commit and push manifest.json version bump
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'chore: bump manifest.json patch version to ${{ steps.bump_version.outputs.new_version }}'
-          file_pattern: manifest.json
-          branch: main
