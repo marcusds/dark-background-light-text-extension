@@ -206,8 +206,11 @@ export class StylesheetColorProcessor
     CSSStyleDeclaration_v: CSSStyleDeclaration,
     base_url: string,
     selector: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _classList_v: string[],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _node_id: string | null,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _tagname: string,
   ): void {
     const var_properties = [];

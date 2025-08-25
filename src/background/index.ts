@@ -257,7 +257,7 @@ async function send_prefs(changes: { [s: string]: Storage.StorageChange }) {
           index === 0 ? el : el.charAt(0).toUpperCase() + el.slice(1),
         )
         .join('');
-      // Use 'any' to avoid unsafe Record assertion, but keep type safety warning
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (new_data as any)[new_key] = (from_manifest as any)[key];
     }
   }
@@ -267,6 +267,7 @@ async function send_prefs(changes: { [s: string]: Storage.StorageChange }) {
   const new_data_for_tabs: ExtensionTypes.InjectDetails = { code };
   for (const key of Object.keys(new_data)) {
     if (["allFrames", "matchAboutBlank", "runAt"].indexOf(key) >= 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (new_data_for_tabs as any)[key] = (new_data as any)[key];
     }
   }
