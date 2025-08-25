@@ -17,8 +17,10 @@ declare const browser: Browser;
 const tabId_promise = browser.runtime.sendMessage({ action: 'query_tabId' });
 let is_iframe: boolean;
 try {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const e = undefined;
   is_iframe = window.self !== window.top;
-} catch (e) {
+} catch (_unused) {
   is_iframe = true;
 }
 
@@ -37,7 +39,7 @@ declare global {
   }
 }
 
-// @ts-ignore: 2454
+// @ts-expect-error: 2454
 if (typeof window.content_script_state === 'undefined') {
   /* #226 part 1 workaround */
   window.content_script_state = 'normal_order';
@@ -250,7 +252,7 @@ interface GetMethodNumberMsg {
   action: 'get_method_number';
 }
 browser.runtime.onMessage.addListener(
-  async (message: GetMethodNumberMsg, _sender) => {
+  async (message: GetMethodNumberMsg, _unusedSender) => {
     try {
       // TODO: statically typed runtime.onMessage
       if (!message.action) {

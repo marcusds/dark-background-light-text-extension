@@ -1,8 +1,8 @@
 export function exportFunction(
-  func: Function,
+  func: (...args: unknown[]) => unknown,
   targetScope: object,
   options?: {
     defineAs?: string;
     allowCrossOriginArguments?: boolean;
   },
-): Function;
+): (...args: unknown[]) => unknown;

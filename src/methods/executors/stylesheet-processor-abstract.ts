@@ -92,7 +92,7 @@ export abstract class StylesheetProcessorAbstract {
 
   load_into_window() {
     this.process();
-    this.handle_visibilitychange = (_event) => {
+    this.handle_visibilitychange = (_unusedEvent) => {
       if (this.stop) {
         return;
       }
@@ -108,7 +108,7 @@ export abstract class StylesheetProcessorAbstract {
       'visibilitychange',
       this.handle_visibilitychange,
     );
-    this.window.addEventListener('unload', (_event) => {
+    this.window.addEventListener('unload', (_unusedEvent) => {
       this.unload_from_window(true);
       // TODO: may be move it to stylesheet-processor.js?
     });
@@ -454,22 +454,26 @@ export abstract class StylesheetProcessorAbstract {
     }
      
     switch (CSSRule_v.type) {
-      case 1: // CSSRule.STYLE_RULE
+      case 1: { // CSSRule.STYLE_RULE
         this.process_CSSStyleRule(CSSRule_v as CSSStyleRule, base_url);
         break;
-      case 3: // CSSRule.IMPORT_RULE
+      }
+      case 3: { // CSSRule.IMPORT_RULE
         // this.process_CSSImportRule(CSSRule_v);
         const importSheet = (CSSRule_v as CSSImportRule).styleSheet;
         if (importSheet) {
           this.process_CSSStyleSheet(importSheet, base_url);
         }
         break;
-      case 4: // CSSRule.MEDIA_RULE
+      }
+      case 4: { // CSSRule.MEDIA_RULE
         this.process_CSSGroupingRule(CSSRule_v as CSSMediaRule, base_url);
         break;
-      case 12: // CSSRule.SUPPORTS_RULE
+      }
+      case 12: { // CSSRule.SUPPORTS_RULE
         this.process_CSSGroupingRule(CSSRule_v as CSSSupportsRule, base_url);
         break;
+      }
     }
   }
 

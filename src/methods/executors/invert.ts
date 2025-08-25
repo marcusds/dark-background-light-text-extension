@@ -3,8 +3,8 @@ import type { AddonOptions, MethodExecutor } from '../../common/types';
 export class InvertMethod implements MethodExecutor {
   window: Window;
 
-  // @ts-ignore: TS6133
-  constructor(window: Window, options: AddonOptions) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  constructor(window: Window, _options: AddonOptions) {
     this.window = window;
   }
 

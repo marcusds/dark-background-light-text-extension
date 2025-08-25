@@ -125,7 +125,7 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
         }
         send_prefs({});
         break;
-      // @ts-ignore: 7029
+      // @ts-expect-error: 7029
       case 'get_my_tab_configuration':
         message.tab_id = sender.tab?.id;  
       // falls through
@@ -175,7 +175,7 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
           { action: 'get_method_number' },
           { frameId: 0 },
         );
-      case 'set_configured_page':
+      case 'set_configured_page': {
         let parsed;
         if(!message.key) {
           const current_tab = (
@@ -189,10 +189,11 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
             })
           )[0];
           const url = current_tab.url!;
-           parsed = new URL(url);
+          parsed = new URL(url);
         }
         await method_change(message.key || parsed?.host, message.value);
         break;
+      }
       default:
         console.error('bad message 2!', message);
         break;
@@ -256,7 +257,7 @@ async function send_prefs(changes: { [s: string]: Storage.StorageChange }) {
           index === 0 ? el : el.charAt(0).toUpperCase() + el.slice(1),
         )
         .join('');
-      (new_data as any)[new_key] = (from_manifest as any)[key];
+      (new_data as Record<string, unknown>)[new_key] = (from_manifest as Record<string, unknown>)[key];
     }
   }
   prev_scripts.push(await browser.contentScripts.register(new_data));
@@ -265,7 +266,7 @@ async function send_prefs(changes: { [s: string]: Storage.StorageChange }) {
   const new_data_for_tabs: ExtensionTypes.InjectDetails = { code };
   for (const key of Object.keys(new_data)) {
     if (['allFrames', 'matchAboutBlank', 'runAt'].indexOf(key) >= 0) {
-      (new_data_for_tabs as any)[key] = (new_data as any)[key];
+      (new_data_for_tabs as Record<string, unknown>)[key] = (new_data as Record<string, unknown>)[key];
     }
   }
   for (const tab of await browser.tabs.query({})) {

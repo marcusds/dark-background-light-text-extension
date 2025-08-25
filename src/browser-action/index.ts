@@ -1,4 +1,3 @@
- 
 import type { Browser } from 'webextension-polyfill';
 import { get_merged_configured_common, get_prefs, set_pref, } from '../common/shared';
 import { methods } from '../methods/methods';
@@ -78,7 +77,7 @@ declare const browser: Browser;
       code: '{}',
       runAt: 'document_start',
     });
-  } catch (e) {
+  } catch (_e) {
     message = `Modification of this page is not available due to ${
       (await browser.runtime.getBrowserInfo()).name
     } restrictions`;
