@@ -127,7 +127,7 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
         break;
       // @ts-ignore: 7029
       case 'get_my_tab_configuration':
-        message.tab_id = sender.tab?.id; // eslint-disable-line no-param-reassign
+        message.tab_id = sender.tab?.id;  
       // falls through
       case 'get_tab_configuration':
         if (

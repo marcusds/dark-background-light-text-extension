@@ -1,4 +1,4 @@
-/* eslint-disable no-shadow */
+ 
 import type { Browser } from 'webextension-polyfill';
 import { get_merged_configured_common, get_prefs, set_pref, } from '../common/shared';
 import { methods } from '../methods/methods';

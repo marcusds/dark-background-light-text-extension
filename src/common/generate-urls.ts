@@ -81,7 +81,7 @@ export function generate_urls(
       .split('/')
       .filter((p) => p.length > 0);
     const prepend_protocol_and_or_host =
-      // eslint-disable-next-line no-nested-ternary
+       
       url_obj.host
         ? `${is_http ? '' : protocol_real}${url_obj.host}/`
         : protocol_real.endsWith('//')

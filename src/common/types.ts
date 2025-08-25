@@ -131,7 +131,7 @@ export interface DefaultColors {
 }
 
 // eslint bug?
-// eslint-disable-next-line no-shadow
+ 
 export const enum CallbackID {
   INSERT_CSS,
   REMOVE_CSS,
