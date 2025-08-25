@@ -1,7 +1,7 @@
 {
   "scripts": {
     "build": "rollup -c --failAfterWarnings",
-    "watch": "rollup -c --failAfterWarnings --watch",
+    "watch": "rollup -c --watch",
     "test": "vitest run",
     "coverage": "vitest run --coverage",
     "build:firefox": "npm run build && cd dist/ && bestzip ../extension.xpi *",

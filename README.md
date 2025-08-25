@@ -1,5 +1,4 @@
-# Dark Background and Light Text
+# Dark Background and Light Text Auto
 
 WebExtension that turns each page colors into light text on dark background.
 
-https://addons.mozilla.org/firefox/addon/dark-background-light-text/
