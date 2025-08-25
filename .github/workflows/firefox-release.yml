@@ -41,18 +41,27 @@ jobs:
           VERSION=$(node -p "require('./manifest.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Rename extension.xpi based on manifest
+        id: rename_xpi
+        run: |
+          ID=$(node -p "require('./manifest.json').browser_specific_settings.gecko.id")
+          VERSION=$(node -p "require('./manifest.json').version")
+          SAFE_ID=$(echo "$ID" | sed 's/[^A-Za-z0-9._-]/_/g')
+          NEW_NAME="${SAFE_ID}-${VERSION}.xpi"
+          mv extension.xpi "$NEW_NAME"
+          echo "xpi_name=$NEW_NAME" >> $GITHUB_OUTPUT
+
       - name: Upload extension artifact
         uses: actions/upload-artifact@v4
         with:
           name: extension-xpi
-          path: extension.xpi
+          path: ${{ steps.rename_xpi.outputs.xpi_name }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.get_version.outputs.version }}
-          name: Firefox Extension v${{ steps.get_version.outputs.version }}
-          files: extension.xpi
+          name: v${{ steps.get_version.outputs.version }}
+          files: ${{ steps.rename_xpi.outputs.xpi_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
