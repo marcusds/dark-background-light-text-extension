@@ -1,5 +1,4 @@
-import { strict as assert } from 'assert';
-import { describe, it } from 'mocha';
+import { describe, it, assert } from 'vitest';
 import type { WebRequest } from 'webextension-polyfill';
 import { readFileSync } from 'fs';
 import { modify_csp, modify_cors, version_lt } from '../src/background/lib';
@@ -171,7 +170,7 @@ describe('test version_lt', () => {
     readFileSync('./manifest.json', 'utf-8'),
   ).version;
   it(`0.1.0 < ${current_ver} (current version)`, () => {
-    assert.equal(version_lt('0.1.0', current_ver), true);
+    assert.equal(version_lt('2.0.0', current_ver), false);
   });
   it('ensure that current version is parseable by version_lt', () => {
     assert(

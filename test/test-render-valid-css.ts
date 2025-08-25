@@ -1,5 +1,4 @@
-import { strict as assert } from 'assert';
-import { describe } from 'mocha';
+import { describe, it, assert } from 'vitest';
 import { lint, LintResult } from 'stylelint';
 import type { RenderOptions } from '../src/common/types';
 import { methods } from '../src/methods/methods-with-stylesheets';

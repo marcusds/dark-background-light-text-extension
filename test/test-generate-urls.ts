@@ -1,5 +1,5 @@
-import { deepStrictEqual, strict as assert } from 'assert';
-import { describe } from 'mocha';
+import { deepStrictEqual } from 'assert';
+import { describe, it, assert } from 'vitest';
 import {
   generate_urls,
   hint_marker,
@@ -333,9 +333,9 @@ const bad_IPs = [
 
 describe('is_IPv4', () => {
   good_IPs.forEach((ip) => {
-    it(`${ip} is IPv4`, () => assert(is_IPv4(ip) === true));
+    it(`${ip} is IPv4`, () => assert(is_IPv4(ip)));
   });
   bad_IPs.forEach((ip) => {
-    it(`${ip} is not IPv4`, () => assert(is_IPv4(ip) === false));
+    it(`${ip} is not IPv4`, () => assert(!is_IPv4(ip)));
   });
 });
