@@ -3,9 +3,14 @@
     "build": "rollup -c --failAfterWarnings",
     "watch": "rollup -c --failAfterWarnings --watch",
     "test": "vitest run",
-    "build:firefox": "npm run build && cd dist/ && bestzip ../extension.xpi *"
+    "coverage": "vitest run --coverage",
+    "build:firefox": "npm run build && cd dist/ && bestzip ../extension.xpi *",
+    "prettier": "prettier --check ./src/",
+    "lint": "eslint ./src/ --ext .js,.ts",
+    "lint:fix": "eslint --fix ./src/ --ext .js,.ts"
   },
   "devDependencies": {
+    "@eslint/js": "^9.34.0",
     "@rollup/plugin-commonjs": "^24.0.0",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-terser": "^0.2.1",
@@ -16,11 +21,14 @@
     "@typescript-eslint/parser": "^5.47.1",
     "assert": "^2.0.0",
     "bestzip": "^2.2.1",
-    "eslint": "^8.31.0",
+    "eslint": "^9.34.0",
     "eslint-config-prettier": "^8.6.0",
     "eslint-import-resolver-typescript": "^3.5.2",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-svelte": "^2.14.1",
+    "globals": "^16.3.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.2.0",
     "npm-check-updates": "^16.6.2",
     "prettier": "npm:@btmills/prettier@^2.7.1",
     "prettier-plugin-svelte": "^2.9.0",
@@ -37,11 +45,18 @@
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
     "typescript": "^5.9.2",
+    "typescript-eslint": "^8.40.0",
     "vitest": "^1.0.0"
   },
   "dependencies": {
     "await-lock": "^2.2.2",
     "csscolorparser-ts": "^1.1.1",
     "tldts": "^5.7.103"
+  },
+  "lint-staged": {
+    "*.{js,ts,svelte,css,html,md}": [
+      "prettier --write",
+      "eslint --fix"
+    ]
   }
 }
