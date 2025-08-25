@@ -7,7 +7,8 @@
     "build:firefox": "npm run build && cd dist/ && bestzip ../extension.xpi *",
     "prettier": "prettier --check ./src/",
     "lint": "eslint ./src/ --ext .js,.ts",
-    "lint:fix": "eslint --fix ./src/ --ext .js,.ts"
+    "lint:fix": "eslint --fix ./src/ --ext .js,.ts",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
