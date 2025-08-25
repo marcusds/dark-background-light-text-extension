@@ -3,7 +3,7 @@
     "build": "rollup -c --failAfterWarnings",
     "watch": "rollup -c --failAfterWarnings --watch",
     "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' nyc --reporter='../../coverage-relative-json-summary' --reporter=html --reporter=text mocha",
-    "build:firefox": "npm run build && cd dist/ && bestzip ../extension.zip *"
+    "build:firefox": "npm run build && cd dist/ && bestzip ../extension.xpi *"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.0",

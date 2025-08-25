@@ -13,4 +13,3 @@ dist
 *#
 .nyc_output/
 coverage/
-/extension.zip

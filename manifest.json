@@ -1,17 +1,15 @@
 {
   "manifest_version": 2,
-  "name": "Dark Background and Light Text",
-  "version": "0.7.6",
   "name": "Dark Background and Light Text with Auto",
-  "version": "1.0.0",
+  "version": "0.0.2",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "DarkBackgroundandLightText@withauto.public"
+    }
+  },
   "description": "Makes every page to have light text on dark background (exact colors are customizable)",
   "icons": {
     "48": "icons/icon48.png"
-  },
-  "applications": {
-    "gecko": {
-      "id": "jid1-QoFqdK4qzUfGWQ@jetpack"
-    }
   },
   "content_scripts": [
     {
