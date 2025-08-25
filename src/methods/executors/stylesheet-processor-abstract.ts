@@ -84,7 +84,7 @@ export abstract class StylesheetProcessorAbstract {
         shadow_roots.push(new WeakRef(root));
         return root;
       }
-      exportFunction(attachShadow, Element.prototype, {
+      exportFunction(attachShadow as (...args: unknown[]) => unknown, Element.prototype, {
         defineAs: 'attachShadow',
       });
     }

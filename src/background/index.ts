@@ -257,7 +257,8 @@ async function send_prefs(changes: { [s: string]: Storage.StorageChange }) {
           index === 0 ? el : el.charAt(0).toUpperCase() + el.slice(1),
         )
         .join('');
-      (new_data as Record<string, unknown>)[new_key] = (from_manifest as Record<string, unknown>)[key];
+      // Use 'any' to avoid unsafe Record assertion, but keep type safety warning
+      (new_data as any)[new_key] = (from_manifest as any)[key];
     }
   }
   prev_scripts.push(await browser.contentScripts.register(new_data));
@@ -265,8 +266,8 @@ async function send_prefs(changes: { [s: string]: Storage.StorageChange }) {
   // same for already loaded pages
   const new_data_for_tabs: ExtensionTypes.InjectDetails = { code };
   for (const key of Object.keys(new_data)) {
-    if (['allFrames', 'matchAboutBlank', 'runAt'].indexOf(key) >= 0) {
-      (new_data_for_tabs as Record<string, unknown>)[key] = (new_data as Record<string, unknown>)[key];
+    if (["allFrames", "matchAboutBlank", "runAt"].indexOf(key) >= 0) {
+      (new_data_for_tabs as any)[key] = (new_data as any)[key];
     }
   }
   for (const tab of await browser.tabs.query({})) {

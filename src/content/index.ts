@@ -17,8 +17,6 @@ declare const browser: Browser;
 const tabId_promise = browser.runtime.sendMessage({ action: 'query_tabId' });
 let is_iframe: boolean;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const e = undefined;
   is_iframe = window.self !== window.top;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 } catch (_err) {
@@ -40,7 +38,6 @@ declare global {
   }
 }
 
-// @ts-expect-error: 2454
 if (typeof window.content_script_state === 'undefined') {
   /* #226 part 1 workaround */
   window.content_script_state = 'normal_order';
