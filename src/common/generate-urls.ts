@@ -37,13 +37,10 @@ export function is_IPv4(maybe_ip: string): boolean {
     const digit = code - 48;
     if (first === null) {
       first = digit;
-      continue;
     } else if (second === null) {
       second = digit;
-      continue;
     } else if (third === null) {
       third = digit;
-      continue;
     } else {
       return false;
     }

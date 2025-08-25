@@ -359,17 +359,13 @@ function is_probably_service_worker(
   }
   const origin_url = new URL(details.originUrl);
   // likely a request from Service Worker
-  if (
-    details.type === 'xmlhttprequest'
+  return details.type === 'xmlhttprequest'
     && details.tabId === -1
     && (origin_url.protocol === 'https:'
       || origin_url.hostname === 'localhost'
       || origin_url.hostname === '127.0.0.1'
-      || origin_url.hostname === '[::1]')
-  ) {
-    return true;
-  }
-  return false;
+      || origin_url.hostname === '[::1]');
+
 }
 
 function get_content_type(

@@ -229,7 +229,7 @@ export abstract class StylesheetProcessorAbstract {
     )) {
       this.process_HTMLElement(node as HTMLElement);
     }
-    if (no_schedule !== true) {
+    if (!no_schedule) {
       if (
         !this.window.document.hidden
         || this.window.document.readyState !== 'complete'
