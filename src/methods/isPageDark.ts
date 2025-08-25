@@ -24,10 +24,10 @@ function getWebsiteTheme() {
 }
 
 export function isPageDark() {
-  const body = document.body;
-  const docEl = document.documentElement;
+  const body = window.document.body;
+  const docEl = window.document.documentElement;
 
-  const htmlEl = document.getElementsByTagName('html')[0];
+  const htmlEl = window.document.getElementsByTagName('html')[0];
   const isDarkClass =
     (htmlEl && htmlEl.classList.contains('dark')) ||
     docEl.classList.contains('dark') ||
