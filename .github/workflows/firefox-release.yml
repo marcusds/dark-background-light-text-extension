@@ -1,0 +1,58 @@
+name: Firefox Extension Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Increment patch version in manifest.json
+        id: bump_version
+        run: |
+          node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync('manifest.json','utf8'));let [maj,min,pat]=m.version.split('.').map(Number);pat++;m.version=[maj,min,pat].join('.');fs.writeFileSync('manifest.json',JSON.stringify(m,null,2)+'\n');console.log('::set-output name=new_version::'+m.version);"
+
+      - name: Commit and push manifest.json version bump
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: bump manifest.json patch version to ${{ steps.bump_version.outputs.new_version }}'
+          file_pattern: manifest.json
+          branch: main
+
+      - name: Build Firefox extension
+        run: npm run build:firefox
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.bump_version.outputs.new_version }}
+          name: Firefox Extension v${{ steps.bump_version.outputs.new_version }}
+          body: 'Automated release of Firefox extension.'
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload XPI to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: extension.xpi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
