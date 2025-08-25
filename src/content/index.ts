@@ -189,11 +189,13 @@ document.addEventListener('DOMContentLoaded', () => {
   //observeClassListChanges();
 });
 
+/*
 document.onreadystatechange = () => {
   if (document.readyState === "interactive") {
     //checkAndPersistDarkPage();
   }
 };
+*/
 
 window.do_it = async function do_it(changes: {
   [s: string]: Storage.StorageChange;

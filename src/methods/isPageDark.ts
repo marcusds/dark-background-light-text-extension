@@ -1,4 +1,4 @@
-const getLuminance = (rgb: string) => {
+/*const getLuminance = (rgb: string) => {
   // Parse rgb(a) string and compute luminance
   const match = rgb.match(/rgba?\((\d+), (\d+), (\d+)/);
   if (!match) return 1; // fallback: treat as light
@@ -7,7 +7,7 @@ const getLuminance = (rgb: string) => {
   const b = parseInt(match[3], 10) / 255;
   // sRGB luminance
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-};
+};*/
 
 function getWebsiteTheme() {
   const root = document.documentElement;
@@ -47,11 +47,13 @@ export function isPageDark() {
   const websiteThemeIsDark = websiteTheme === 'dark';
   if (websiteThemeIsDark) return true;
 
-  const style = window.getComputedStyle(body || docEl);
+  return false;
+
+  /*const style = window.getComputedStyle(body || docEl);
   const bg = style.backgroundColor;
   const fg = style.color;
   const bgLum = getLuminance(bg);
   const fgLum = getLuminance(fg);
 
-  return bgLum < 0.5 && fgLum > 0.5;
+  return bgLum < 0.5 && fgLum > 0.5;*/
 }
