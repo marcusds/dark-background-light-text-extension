@@ -9,56 +9,21 @@
   // sRGB luminance
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 };*/
-const DARK_CLASSES = ['dark', 'night', 'dark-mode', 'theme-dark', 'darkTheme', 'skin-theme-clientpref-os'];
-
-function getWebsiteTheme() {
-  const root = document.documentElement;
-  const colorMode = root.getAttribute('data-color-mode');
-
-  if (colorMode === 'auto') {
-    // Fall back to system preference
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? root.getAttribute('data-dark-theme') || 'dark'
-      : root.getAttribute('data-light-theme') || 'light';
-  }
-
-  return colorMode; // "light" or "dark"
-}
 
 export function isPageDark() {
-  const body = window.document.body;
-  const docEl = window.document.documentElement;
+  const doc = document.documentElement;
+  const body = document.body;
   const htmlEl = window.document.getElementsByTagName('html')[0];
 
-  const hasDarkClass = (el: Element | null) => {
-    if (!el) return false;
-    const classAttr = el.getAttribute('class') || '';
-    return DARK_CLASSES.some(cls => classAttr.includes(cls));
-  };
 
-  const isDarkClass = hasDarkClass(htmlEl) || hasDarkClass(docEl) || hasDarkClass(body);
+  // Check for common dark mode classes
+  const darkClassNames = ['dark', 'night', 'dark-mode', 'theme-dark', 'darkTheme', 'skin-theme-clientpref-os'];
+  const hasDarkClass = (el: Element | null) =>
+    !!el && darkClassNames.some(cls => el.getAttribute('class')?.includes(cls));
 
-  if (isDarkClass) return true;
+  if (hasDarkClass(doc) || hasDarkClass(body) || hasDarkClass(htmlEl)) return true;
 
-  const darkreaderSchemeHtml = htmlEl && htmlEl.getAttribute('data-darkreader-scheme') === 'dark';
-
-  if (darkreaderSchemeHtml) return true;
-
-  const theme = docEl.getAttribute('data-theme');
-  const themeIsDark = theme && theme.toLowerCase().includes('dark');
-  if (themeIsDark) return true;
-
-  const websiteTheme = getWebsiteTheme();
-
-  return websiteTheme === 'dark';
-
-
-
-  /*const style = window.getComputedStyle(body || docEl);
-  const bg = style.backgroundColor;
-  const fg = style.color;
-  const bgLum = getLuminance(bg);
-  const fgLum = getLuminance(fg);
-
-  return bgLum < 0.5 && fgLum > 0.5;*/
+  // Check for data-theme="dark"
+  return doc.getAttribute('data-theme')?.toLowerCase() === 'dark' ||
+    body.getAttribute('data-theme')?.toLowerCase() === 'dark';
 }
