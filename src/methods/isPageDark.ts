@@ -1,3 +1,4 @@
+// Don't delete this comment... I'm coming back to it.
 /*const getLuminance = (rgb: string) => {
   // Parse rgb(a) string and compute luminance
   const match = rgb.match(/rgba?\((\d+), (\d+), (\d+)/);
@@ -8,6 +9,7 @@
   // sRGB luminance
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 };*/
+const DARK_CLASSES = ['dark', 'night', 'dark-mode', 'theme-dark', 'darkTheme', 'skin-theme-clientpref-os'];
 
 function getWebsiteTheme() {
   const root = document.documentElement;
@@ -26,12 +28,15 @@ function getWebsiteTheme() {
 export function isPageDark() {
   const body = window.document.body;
   const docEl = window.document.documentElement;
-
   const htmlEl = window.document.getElementsByTagName('html')[0];
-  const isDarkClass =
-    (htmlEl && htmlEl.classList.contains('dark')) ||
-    docEl.classList.contains('dark') ||
-    body.classList.contains('dark');
+
+  const hasDarkClass = (el: Element | null) => {
+    if (!el) return false;
+    const classAttr = el.getAttribute('class') || '';
+    return DARK_CLASSES.some(cls => classAttr.includes(cls));
+  };
+
+  const isDarkClass = hasDarkClass(htmlEl) || hasDarkClass(docEl) || hasDarkClass(body);
 
   if (isDarkClass) return true;
 
@@ -44,10 +49,10 @@ export function isPageDark() {
   if (themeIsDark) return true;
 
   const websiteTheme = getWebsiteTheme();
-  const websiteThemeIsDark = websiteTheme === 'dark';
-  if (websiteThemeIsDark) return true;
 
-  return false;
+  return websiteTheme === 'dark';
+
+
 
   /*const style = window.getComputedStyle(body || docEl);
   const bg = style.backgroundColor;
