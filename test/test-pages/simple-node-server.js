@@ -1,15 +1,15 @@
 // based on
 // https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework
 
-const { createServer } = require('http');
-const fs = require('fs').promises;
-const get_extname = require('path').extname;
+import { createServer } from 'http';
+import { promises as fs } from 'fs';
+import { extname as get_extname } from 'path';
 
 console.log(
   'This server must be used only for testing with trusted code. Do not use it on production or anywhere except for localhost!',
 );
 
-exports.serve = ({
+export const serve = ({
   port = 8080,
   mutateHeaders,
   mutateFilePath,

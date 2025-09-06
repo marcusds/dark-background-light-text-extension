@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "scripts": {
     "build": "rollup -c --failAfterWarnings",
     "watch": "rollup -c --watch",
@@ -22,6 +23,7 @@
     "@types/webextension-polyfill": "^0.12.3",
     "@typescript-eslint/eslint-plugin": "^8.42.0",
     "@typescript-eslint/parser": "^8.42.0",
+    "@vitest/coverage-v8": "^3.2.4",
     "assert": "^2.1.0",
     "bestzip": "^2.2.1",
     "eslint": "^9.35.0",
