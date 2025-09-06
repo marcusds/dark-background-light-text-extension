@@ -120,7 +120,7 @@ export async function get_prefs(
     throw new Error('get_prefs parameter has unsupported type');
   }
   const ret_data = await browser.storage.local.get(query);
-  return is_single ? ret_data[prefs as string] : ret_data;
+  return is_single ? ret_data[prefs as string] as PrefsType : ret_data as PrefsWithValues;
 }
 
 export function set_pref(pref: string, value: PrefsType): Promise<void> {
@@ -153,7 +153,7 @@ export async function get_merged_configured_common(
 ): Promise<ConfiguredPages> {
   const local_storage_p = browser.storage.local.get({ configured_pages: {} });
   return {
-    ...(await local_storage_p).configured_pages,
+    ...((await local_storage_p).configured_pages as ConfiguredPages),
     ...(await get_configured_private()),
     // ...built_in_configured,
   };

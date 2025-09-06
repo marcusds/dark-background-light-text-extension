@@ -102,7 +102,8 @@ function process_stylesheet(
     .trim(); // Remove leading/trailing whitespace
 }
 
-browser.runtime.onMessage.addListener(async (message, sender) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+browser.runtime.onMessage.addListener(async (message: any, sender: any) => {
   try {
     // Message handling with improved type safety
     if (!message?.action) {

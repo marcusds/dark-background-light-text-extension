@@ -14,7 +14,7 @@ export async function query_style() {
     ext_style.setAttribute('id', 'base-extension-style');
     container.appendChild(ext_style);
   }
-  ext_style.textContent = await css_promise;
+  ext_style.textContent = (await css_promise) as string;
 }
 if (document.readyState === 'loading') {
   document.addEventListener(

@@ -1,5 +1,5 @@
 import { describe, it, assert } from 'vitest';
-import { lint, LintResult } from 'stylelint';
+import stylelint, { LintResult } from 'stylelint';
 import type { RenderOptions } from '../src/common/types';
 import { methods } from '../src/methods/methods-with-stylesheets';
 
@@ -65,7 +65,7 @@ describe('Test if valid CSS are rendered', () => {
         is_darkbg,
       })}`, async () => {
         const rendered = renderer.render(options_copy);
-        const result_object = await lint({
+        const result_object = await stylelint.lint({
           config: {
             extends: 'stylelint-config-standard',
             rules: {

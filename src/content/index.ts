@@ -52,7 +52,7 @@ async function is_default_method(url: string): Promise<boolean> {
       const parent_method_number = await browser.runtime.sendMessage({
         action: 'query_parent_method_number',
       });
-      if (methods[parent_method_number].affects_iframes) {
+      if (methods[parent_method_number as number].affects_iframes) {
         return false;
       } else if (url === 'about:blank' || url === 'about:srcdoc') {
         return false;
@@ -63,7 +63,7 @@ async function is_default_method(url: string): Promise<boolean> {
     if (Object.keys(window.configured_tabs).length > 0) {
       const tabId = await tabId_promise;
       tab_configuration =
-        tabId in window.configured_tabs ? window.configured_tabs[tabId] : false;
+        (tabId as number) in window.configured_tabs ? window.configured_tabs[tabId as number] : false;
     }
 
     if (tab_configuration !== false) {
@@ -94,10 +94,10 @@ async function get_method_for_url(
       const parent_method_number = await browser.runtime.sendMessage({
         action: 'query_parent_method_number',
       });
-      if (methods[parent_method_number].affects_iframes) {
+      if (methods[parent_method_number as number].affects_iframes) {
         return methods[0];
       } else if (url === 'about:blank' || url === 'about:srcdoc') {
-        return methods[parent_method_number];
+        return methods[parent_method_number as number];
       }
     }
     // TODO: get rid of await here, https://bugzilla.mozilla.org/show_bug.cgi?id=1574713
@@ -105,10 +105,10 @@ async function get_method_for_url(
     if (Object.keys(window.configured_tabs).length > 0) {
       const tabId = await tabId_promise;
       tab_configuration =
-        tabId in window.configured_tabs ? window.configured_tabs[tabId] : false;
+        (tabId as number) in window.configured_tabs ? window.configured_tabs[tabId as number] : false;
     }
     if (tab_configuration !== false) {
-      return methods[tab_configuration];
+      return methods[tab_configuration as unknown as number];
     }
 
     const configured_urls = Object.keys(window.merged_configured);
@@ -148,7 +148,7 @@ async function checkAndPersistDarkPage() {
       || window.merged_configured[urlKey] !== DISABLED_ID
     ) {
       const tabId = await tabId_promise;
-      const url = window.configured_tabs?.[tabId];
+      const url = window.configured_tabs?.[tabId as number];
       await browser.runtime.sendMessage({
         action: 'set_configured_page',
         key: url,
@@ -274,10 +274,8 @@ window.do_it = async function do_it(
   }
 };
 
-interface GetMethodNumberMsg {
-  action: 'get_method_number';
-}
-browser.runtime.onMessage.addListener(async (message: GetMethodNumberMsg) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+browser.runtime.onMessage.addListener(async (message: any) => {
   try {
     if (!message?.action) {
       console.error('Invalid message format:', message);
