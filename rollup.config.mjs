@@ -16,7 +16,10 @@ export default (args) => {
     typescript({
       sourceMap: args.watch === true,
     }),
-    node_resolve(),
+    node_resolve({
+      browser: true,
+      exportConditions: ['svelte'],
+    }),
     commonjs(),
   ];
   const onwarn = (warning, warn) => {
@@ -81,6 +84,7 @@ export default (args) => {
             // enable run-time checks when not in production
             dev: args.watch === true,
           },
+          emitCss: true,
         }),
         css({ output: 'preferences.css' }),
         ...common_plugins,

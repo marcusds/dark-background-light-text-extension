@@ -135,12 +135,13 @@ let current_method_promise: Promise<MethodMetadataWithExecutors> = new Promise(
 let current_method_executor: MethodExecutor | undefined;
 
 // Move dark mode check and persistence to its own function and listener
-async function checkAndPersistDarkPage(recheck = false) {
+async function checkAndPersistDarkPage() {
   const isDefaultMethod =
     (await is_default_method(window.document.documentURI))
     || (await is_default_method(window.location.hostname));
   if (!isDefaultMethod) return;
-  if (isPageDark(recheck)) {
+  const method = await get_method_for_url(window.document.documentURI);
+  if (isPageDark(method)) {
     const urlKey = generate_urls(window.document.documentURI)[0];
     if (
       !window.merged_configured[urlKey]
@@ -172,7 +173,7 @@ function observeClassListChanges() {
   };
   // Remove observers after 45s regardless
   const timeout = setTimeout(disconnectAll, 45000);
-  const callback = (mutationsList: MutationRecord[]) => {
+  const callback = async (mutationsList: MutationRecord[]) => {
     for (const mutation of mutationsList) {
       if (
         mutation.type === 'attributes'
@@ -180,7 +181,8 @@ function observeClassListChanges() {
           || mutation.attributeName?.startsWith('data-'))
       ) {
         checkAndPersistDarkPage();
-        if (isPageDark(true)) {
+        const method = await get_method_for_url(window.document.documentURI);
+        if (isPageDark(method)) {
           disconnectAll();
         }
         break;
@@ -249,7 +251,6 @@ window.do_it = async function do_it(
         document.documentElement.appendChild(style_node);
         if (!document.body) {
           const appendNode = () => {
-            // console.log(2, window.getComputedStyle(document.body)?.color);
             document.documentElement.appendChild(style_node);
           };
           if (document.readyState === 'loading') {
@@ -262,20 +263,12 @@ window.do_it = async function do_it(
         }
       }
       if (current_method_executor) {
-        // console.log(3, window.getComputedStyle(document.body)?.color);
         current_method_executor.unload_from_window();
         current_method_executor = undefined;
       }
       if (new_method.executor) {
-        // console.log(4, window.getComputedStyle(document.body)?.color);
         current_method_executor = new new_method.executor(window, window.prefs);
-        console.log('new_method', new_method);
         current_method_executor.load_into_window();
-        /*if (document.readyState === 'complete') {
-          document
-            .querySelectorAll('.dblt-ykjmwcnxmi')
-            .forEach((el) => el.setAttribute('media', 'not all'));
-        }*/
       }
     }
     current_method = new_method;

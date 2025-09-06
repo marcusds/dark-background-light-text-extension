@@ -77,8 +77,7 @@ function process_stylesheet(
     < relative_luminance(
       strip_alpha(parseCSSColor(prefs.default_foreground_color as string)!),
     );
-  console.log('render', sheet);
-  return sheet.render({
+  const rendered_css = sheet.render({
     default_foreground_color: prefs.default_foreground_color as string,
     default_background_color: prefs.default_background_color as string,
     default_link_color: prefs.default_link_color as string,
@@ -88,6 +87,19 @@ function process_stylesheet(
     is_toplevel,
     is_darkbg,
   });
+
+  // Minimize CSS by removing whitespace and comments
+  return rendered_css
+    .replaceAll(/\/\*[\s\S]*?\*\//g, '') // Remove /* */ comments
+    .replaceAll(/\/\/.*$/gm, '') // Remove // comments
+    .replaceAll(/\s+/g, ' ') // Replace multiple whitespace with single space
+    .replaceAll(/;\s*}/g, '}') // Remove semicolon before closing brace
+    .replaceAll(/\{\s+/g, '{') // Remove space after opening brace
+    .replaceAll(/\s+\{/g, '{') // Remove space before opening brace
+    .replaceAll(/:\s+/g, ':') // Remove space after colon
+    .replaceAll(/,\s+/g, ',') // Remove space after comma
+    .replaceAll(/;\s+/g, ';') // Remove space after semicolon
+    .trim(); // Remove leading/trailing whitespace
 }
 
 browser.runtime.onMessage.addListener(async (message, sender) => {

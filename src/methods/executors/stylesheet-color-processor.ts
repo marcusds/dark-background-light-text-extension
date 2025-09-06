@@ -214,7 +214,7 @@ export class StylesheetColorProcessor
     _tagname: string,
   ): void {
     // Skip processing for the page dark test div
-    if (selector.includes('#is-page-dark-test-div')) {
+    if (selector.includes('#is-page-dark-test-3k4fh3')) {
       return;
     }
     const var_properties = [];
