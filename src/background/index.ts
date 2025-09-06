@@ -55,11 +55,11 @@ browser.tabs.onRemoved.addListener(async (tabId) => {
       }
       send_prefs({});
     }
-    if (Object.prototype.hasOwnProperty.call(configured_tabs, tabId)) {
+    if (tabId in configured_tabs) {
       delete configured_tabs[tabId];
     }
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    console.error('Error handling message:', error);
   }
 });
 
@@ -91,9 +91,9 @@ function process_stylesheet(
 
 browser.runtime.onMessage.addListener(async (message, sender) => {
   try {
-    // TODO: statically typed runtime.onMessage
-    if (!Object.prototype.hasOwnProperty.call(message, 'action')) {
-      console.error('bad message!', message);
+    // Message handling with improved type safety
+    if (!message?.action) {
+      console.error('Invalid message format:', message);
       return;
     }
     switch (message.action) {
@@ -130,19 +130,12 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
         message.tab_id = sender.tab?.id;
       // falls through
       case 'get_tab_configuration':
-        if (
-          Object.prototype.hasOwnProperty.call(configured_tabs, message.tab_id)
-        ) {
-          return configured_tabs[message.tab_id];
-        }
-        return false;
+        return message.tab_id in configured_tabs
+          ? configured_tabs[message.tab_id]
+          : false;
       case 'set_configured_tab':
         if (message.value === null) {
-          if (
-            Object.prototype.hasOwnProperty.call(configured_tabs, message.key)
-          ) {
-            delete configured_tabs[message.key];
-          }
+          delete configured_tabs[message.key];
         } else {
           configured_tabs[message.key] = message.value;
         }
@@ -158,10 +151,7 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
         }
         break;
       case 'is_commands_update_available':
-        return (
-          Object.prototype.hasOwnProperty.call(browser, 'commands')
-          && Object.prototype.hasOwnProperty.call(browser.commands, 'update')
-        );
+        return 'commands' in browser && 'update' in browser.commands;
       case 'query_parent_method_number':
         if (sender.frameId === 0) {
           console.error(
@@ -195,11 +185,11 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
         break;
       }
       default:
-        console.error('bad message 2!', message);
+        console.error('Unknown message action:', message.action);
         break;
     }
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    console.error('Error handling message:', error);
   }
 });
 
@@ -271,14 +261,17 @@ async function send_prefs(changes: { [s: string]: Storage.StorageChange }) {
       (new_data_for_tabs as any)[key] = (new_data as any)[key];
     }
   }
-  for (const tab of await browser.tabs.query({})) {
-    browser.tabs.executeScript(tab.id, new_data_for_tabs);
-  }
+  const tabs = await browser.tabs.query({});
+  const scriptPromises = tabs.map(tab => 
+    browser.tabs.executeScript(tab.id, new_data_for_tabs)
+      .catch(error => console.error(`Failed to inject script into tab ${tab.id}:`, error))
+  );
+  await Promise.allSettled(scriptPromises);
 }
 send_prefs({});
 on_prefs_change(send_prefs);
 
-if (Object.prototype.hasOwnProperty.call(browser, 'commands')) {
+if ('commands' in browser) {
   browser.commands.onCommand.addListener(async (name) => {
     try {
       let current_tab: Tabs.Tab;
@@ -304,11 +297,11 @@ if (Object.prototype.hasOwnProperty.call(browser, 'commands')) {
           send_prefs({});
           break;
         default:
-          console.error('bad command');
+          console.error('Unknown command:', name);
           break;
       }
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error('Error handling command:', error);
     }
   });
 }

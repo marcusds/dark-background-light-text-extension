@@ -18,8 +18,8 @@ const tabId_promise = browser.runtime.sendMessage({ action: 'query_tabId' });
 let is_iframe: boolean;
 try {
   is_iframe = window.self !== window.top;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-} catch (_err) {
+} catch {
+  // Using empty catch block as the error value is not needed
   is_iframe = true;
 }
 
@@ -62,10 +62,7 @@ async function is_default_method(url: string): Promise<boolean> {
     let tab_configuration: MethodIndex | boolean = false;
     if (Object.keys(window.configured_tabs).length > 0) {
       const tabId = await tabId_promise;
-      tab_configuration = Object.prototype.hasOwnProperty.call(
-        window.configured_tabs,
-        tabId,
-      )
+      tab_configuration = tabId in window.configured_tabs
         ? window.configured_tabs[tabId]
         : false;
     }
@@ -76,7 +73,7 @@ async function is_default_method(url: string): Promise<boolean> {
 
     const configured_urls = Object.keys(window.merged_configured);
     for (const gen_url of generate_urls(url)) {
-      if (configured_urls.indexOf(gen_url) >= 0) {
+      if (configured_urls.includes(gen_url)) {
         return false;
       }
     }
@@ -108,10 +105,7 @@ async function get_method_for_url(
     let tab_configuration: MethodIndex | boolean = false;
     if (Object.keys(window.configured_tabs).length > 0) {
       const tabId = await tabId_promise;
-      tab_configuration = Object.prototype.hasOwnProperty.call(
-        window.configured_tabs,
-        tabId,
-      )
+      tab_configuration = tabId in window.configured_tabs
         ? window.configured_tabs[tabId]
         : false;
     }
@@ -121,7 +115,7 @@ async function get_method_for_url(
 
     const configured_urls = Object.keys(window.merged_configured);
     for (const gen_url of generate_urls(url)) {
-      if (configured_urls.indexOf(gen_url) >= 0) {
+      if (configured_urls.includes(gen_url)) {
         return methods[window.merged_configured[gen_url]];
       }
     }
@@ -218,14 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
   observeClassListChanges();
 });
 
-/*
-document.onreadystatechange = () => {
-  if (document.readyState === "interactive") {
-    //checkAndPersistDarkPage();
-  }
-};
-*/
-
 window.do_it = async function do_it(
   changes: {
     [s: string]: Storage.StorageChange;
@@ -248,11 +234,8 @@ window.do_it = async function do_it(
       || new_method.number !== current_method.number
       || Object.keys(changes).some((key) => key.indexOf('_color') >= 0)
     ) {
-      for (const node of document.querySelectorAll(
-        'style[class="dblt-ykjmwcnxmi"]',
-      )) {
-        node.parentElement!.removeChild(node);
-      }
+      document.querySelectorAll('style.dblt-ykjmwcnxmi')
+        .forEach(node => node.remove());
       for (const css_renderer of new_method.stylesheets) {
         const style_node = document.createElement('style');
         style_node.setAttribute('data-source', css_renderer.name);
@@ -263,9 +246,14 @@ window.do_it = async function do_it(
           ];
         document.documentElement.appendChild(style_node);
         if (!document.body) {
-          document.addEventListener('DOMContentLoaded', () => {
+          const appendNode = () => {
             document.documentElement.appendChild(style_node);
-          });
+          };
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', appendNode, { once: true });
+          } else {
+            appendNode();
+          }
         }
       }
       if (current_method_executor) {
@@ -288,22 +276,21 @@ interface GetMethodNumberMsg {
 }
 browser.runtime.onMessage.addListener(async (message: GetMethodNumberMsg) => {
   try {
-    // TODO: statically typed runtime.onMessage
-    if (!message.action) {
-      console.error('bad message!', message);
-      return;
+    if (!message?.action) {
+      console.error('Invalid message format:', message);
+      return undefined;
     }
-    switch (message.action) {
-      case 'get_method_number':
-        return (await current_method_promise).number;
-      default:
-        console.error('bad message 2!', message);
-        return;
+    
+    if (message.action === 'get_method_number') {
+      return (await current_method_promise).number;
     }
-  } catch (e) {
-    console.error(e);
+    
+    console.error('Unknown message action:', message.action);
+    return undefined;
+  } catch (error) {
+    console.error('Error handling message:', error);
+    return undefined;
   }
-  return;
 });
 
 if (window.content_script_state === 'registered_content_script_first') {

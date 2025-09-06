@@ -7,7 +7,7 @@ import {
 import { methods } from '../methods/methods';
 import { hint_marker } from '../common/generate-urls';
 import { smart_generate_urls } from '../common/smart-generate-urls';
-import type { ConfiguredPages } from '../common/types';
+import type { ConfiguredPages, MethodIndex } from '../common/types';
 import '../common/ui-style';
 import { CURRENT_TAB_LABEL } from '../consts';
 
@@ -80,11 +80,10 @@ declare const browser: Browser;
       code: '{}',
       runAt: 'document_start',
     });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (_e) {
-    message = `Modification of this page is not available due to ${
-      (await browser.runtime.getBrowserInfo()).name
-    } restrictions`;
+  } catch {
+    // Using empty catch block as the error value is not needed
+    const browserInfo = await browser.runtime.getBrowserInfo();
+    message = `Modification of this page is not available due to ${browserInfo.name} restrictions`;
   }
   if (!message) {
     if (url.indexOf(browser.runtime.getURL('/')) === 0) {
@@ -105,18 +104,17 @@ declare const browser: Browser;
   }
   const isPrivate = current_tab.incognito;
   const enabled = await get_prefs('enabled');
-  const body = document.querySelector('body')!;
+  const body = document.body;
   if ((await browser.runtime.getPlatformInfo()).os === 'android') {
     body.setAttribute('class', 'touchscreen');
   }
 
-  while (body.firstChild) {
-    body.removeChild(body.firstChild);
-  }
+  body.replaceChildren();
 
   async function handle_choose_url() {
-    const url = (document.querySelector('#url_select') as HTMLFormElement)
-      .value;
+    const urlSelect = document.getElementById('url_select') as HTMLSelectElement;
+    const url = urlSelect.value;
+    
     let current_url_method;
     if (url === CURRENT_TAB_LABEL) {
       current_url_method = await browser.runtime.sendMessage({
@@ -124,56 +122,42 @@ declare const browser: Browser;
         tab_id: current_tab.id,
       });
     } else {
-      current_url_method =
-        configured[
-          (document.querySelector('#url_select') as HTMLFormElement).value
-        ];
+      current_url_method = configured[url];
     }
-    if (current_url_method) {
-      (
-        document.querySelector(
-          `#method_${current_url_method}`,
-        ) as HTMLFormElement
-      ).checked = true;
-    } else {
-      (document.querySelector('#method_-1') as HTMLFormElement).checked = true;
+    
+    const methodId = current_url_method ?? '-1';
+    const methodRadio = document.getElementById(`method_${methodId}`) as HTMLInputElement;
+    if (methodRadio) {
+      methodRadio.checked = true;
     }
   }
 
   async function handle_method_change() {
-    const methods = document.querySelectorAll(
-      'input.methods',
-    ) as NodeListOf<HTMLFormElement>;
-    let checked_method: HTMLFormElement;
-    for (let i = 0; i < methods.length; ++i) {
-      if (methods[i].checked) {
-        checked_method = methods[i];
-        break;
-      }
-    }
-    const method_n = checked_method!.value;
-    const url: string = (
-      document.querySelector('#url_select') as HTMLFormElement
-    ).value;
+    const checkedMethod = document.querySelector('input.methods:checked') as HTMLInputElement;
+    if (!checkedMethod) return;
+    
+    const method_n = parseInt(checkedMethod.value, 10);
+    const urlSelect = document.getElementById('url_select') as HTMLSelectElement;
+    const url = urlSelect.value;
 
     if (url === CURRENT_TAB_LABEL) {
       browser.runtime.sendMessage({
         action: 'set_configured_tab',
         key: current_tab.id,
-        value: method_n >= 0 ? method_n : null,
+        value: method_n >= 0 ? method_n.toString() as MethodIndex : null,
       });
     } else if (isPrivate) {
       browser.runtime.sendMessage({
         action: 'set_configured_private',
         key: url,
-        value: method_n >= 0 ? method_n : null,
+        value: method_n >= 0 ? method_n.toString() as MethodIndex : null,
       });
     } else {
       const configured_pages = await get_prefs('configured_pages');
       if (method_n < 0) {
         delete configured_pages[url];
       } else {
-        configured_pages[url] = method_n;
+        configured_pages[url] = method_n.toString() as MethodIndex;
       }
       await set_pref('configured_pages', configured_pages);
     }
@@ -284,4 +268,4 @@ declare const browser: Browser;
   preferences.appendChild(prefs_button);
 
   body.appendChild(preferences);
-})().catch((rejection) => console.error(rejection));
+})().catch((error) => console.error('Error in browser action:', error));
