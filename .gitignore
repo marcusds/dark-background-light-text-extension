@@ -13,3 +13,5 @@ dist
 *#
 .nyc_output/
 coverage/
+dark-background-light-text-extension.zip
+extension.xpi

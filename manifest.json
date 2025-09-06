@@ -10,7 +10,7 @@
       }
     }
   },
-  "description": "Makes every page to have light text on dark background (exact colors are customizable). Attempts to detect dark mode automatically.",
+  "description": "Attempts to be light and high performance specifically targeting Firefox for Android. Automatic dark mode while attempting to respect sites that are already dark.",
   "icons": {
     "48": "icons/icon48.png"
   },
