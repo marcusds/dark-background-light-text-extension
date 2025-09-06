@@ -9,6 +9,7 @@ import svelte from 'rollup-plugin-svelte';
 import css from 'rollup-plugin-css-only';
 import autoPreprocess from 'svelte-preprocess';
 import process from 'process';
+import terser from '@rollup/plugin-terser';
 
 export default (args) => {
   let output_opts = {};
@@ -35,9 +36,7 @@ export default (args) => {
     };
   } else {
     output_opts = {
-      plugins: [
-        /*terser()*/
-      ],
+      plugins: [terser()],
       format: 'iife',
       sourcemap: false,
     };

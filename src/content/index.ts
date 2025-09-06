@@ -9,7 +9,7 @@ import type {
 } from '../common/types';
 import { methods } from '../methods/methods-with-executors';
 import { generate_urls } from '../common/generate-urls';
-import { isPageDark } from '../utils/isPageDark';
+import { darkDatas, isPageDark } from '../utils/isPageDark';
 import { DISABLED_ID } from '../methods/methods';
 
 declare const browser: Browser;
@@ -143,12 +143,12 @@ let current_method_promise: Promise<MethodMetadataWithExecutors> = new Promise(
 let current_method_executor: MethodExecutor | undefined;
 
 // Move dark mode check and persistence to its own function and listener
-async function checkAndPersistDarkPage() {
+async function checkAndPersistDarkPage(recheck = false) {
   const isDefaultMethod =
     (await is_default_method(window.document.documentURI))
     || (await is_default_method(window.location.hostname));
   if (!isDefaultMethod) return;
-  if (isPageDark()) {
+  if (isPageDark(recheck)) {
     const urlKey = generate_urls(window.document.documentURI)[0];
     if (
       !window.merged_configured[urlKey]
@@ -167,31 +167,55 @@ async function checkAndPersistDarkPage() {
 }
 
 // Listen for classList changes on <body> and <html> to re-check dark mode
-/*
 function observeClassListChanges() {
+  // Store observers so we can disconnect them later
+  const observers: MutationObserver[] = [];
+  let disconnected = false;
+  const disconnectAll = () => {
+    clearTimeout(timeout);
+    if (!disconnected) {
+      observers.forEach((observer) => observer.disconnect());
+      disconnected = true;
+    }
+  };
+  // Remove observers after 45s regardless
+  const timeout = setTimeout(disconnectAll, 45000);
   const callback = (mutationsList: MutationRecord[]) => {
     for (const mutation of mutationsList) {
-      if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+      if (
+        mutation.type === 'attributes'
+        && (mutation.attributeName === 'class'
+          || mutation.attributeName?.startsWith('data-'))
+      ) {
         checkAndPersistDarkPage();
+        if (isPageDark(true)) {
+          disconnectAll();
+        }
         break;
       }
     }
   };
-  const config = { attributes: true, attributeFilter: ['class'] };
+  const config = {
+    attributes: true,
+    attributeFilter: ['class', ...darkDatas.map((value) => `data-${value}`)],
+  };
   const body = document.body;
   const html = document.documentElement;
   if (body) {
-    new MutationObserver(callback).observe(body, config);
+    const observer = new MutationObserver(callback);
+    observer.observe(body, config);
+    observers.push(observer);
   }
   if (html) {
-    new MutationObserver(callback).observe(html, config);
+    const observer = new MutationObserver(callback);
+    observer.observe(html, config);
+    observers.push(observer);
   }
 }
-*/
 
 document.addEventListener('DOMContentLoaded', () => {
   checkAndPersistDarkPage();
-  //observeClassListChanges();
+  observeClassListChanges();
 });
 
 /*

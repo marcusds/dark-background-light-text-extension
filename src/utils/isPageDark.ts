@@ -10,38 +10,90 @@
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 };*/
 
-function checkByElement() {
+/*function checkByElement() {
   // Add a div to the page.
-  // Set its style to position: absolute: right: 0; bottom: 0;
-}
+  // Set its style to position: absolute; right: 0; bottom: 0;
+  const id = 'is-page-dark-test-div';
+  let testDiv = document.getElementById(id) as HTMLDivElement | null;
+  if (!testDiv) {
+    testDiv = document.createElement('div');
+    testDiv.id = id;
+    testDiv.style.position = 'absolute';
+    testDiv.style.right = '0';
+    testDiv.style.bottom = '0';
+    testDiv.style.width = '100px';
+    testDiv.style.height = '100px';
+    // testDiv.style.zIndex = '-9999';
+    testDiv.style.pointerEvents = 'none';
+    testDiv.style.background = 'white';
+    testDiv.style.border = 'green';
+    document.body.appendChild(testDiv);
+  }
+  return false;
+}*/
 
-export function isPageDark() {
+// Check for common dark mode classes
+const darkClassNames = ['dark', 'night', 'skin-theme-clientpref-os'];
+
+// Check for common dark mode data attr
+export const darkDatas = ['colorMode', 'theme', 'bs-theme'];
+
+const isDarkPref = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+const hasDarkClass = (els: HTMLElement[] | null) => {
+  if (!els) return false;
+  for (const el of els) {
+    if (darkClassNames.some((cls) => el.getAttribute('class')?.includes(cls))) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const hasDarkData = (els: HTMLElement[] | null) => {
+  if (!els) return false;
+  for (const el of els) {
+    if (
+      el.hasAttribute('dark') // Youtube
+      || darkDatas.some(
+        (v) =>
+          (isDarkPref && el?.dataset?.[v]?.includes('auto'))
+          || el?.dataset?.[v]?.includes('dark')
+          || el?.dataset?.[v]?.includes('black'),
+      )
+    ) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const hasDarkStyle = (els: HTMLElement[] | null) => {
+  if (!els) return false;
+  for (const el of els) {
+    const style = el.getAttribute('style');
+    if (style && /color-scheme\s*:\s*dark/i.test(style)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function isPageDark(_recheck = false) {
   const doc = document.documentElement;
   const body = document.body;
   const htmlEl = window.document.getElementsByTagName('html')[0];
 
-  // Check for common dark mode classes
-  const darkClassNames = [
-    'dark',
-    'night',
-    'dark-mode',
-    'theme-dark',
-    'darkTheme',
-    'skin-theme-clientpref-os',
-  ];
-  const hasDarkClass = (el: Element | null) =>
-    !!el
-    && darkClassNames.some((cls) => el.getAttribute('class')?.includes(cls));
+  const allEls = [doc, body, htmlEl];
 
-  if (hasDarkClass(doc) || hasDarkClass(body) || hasDarkClass(htmlEl))
-    return true;
+  if (hasDarkClass(allEls)) return true;
 
-  // Check for data-theme="dark"
-  if (
-    doc.getAttribute('data-theme')?.toLowerCase() === 'dark'
-    || body.getAttribute('data-theme')?.toLowerCase() === 'dark'
-  )
-    return true;
+  if (hasDarkData(allEls)) return true;
 
-  return checkByElement();
+  return hasDarkStyle(allEls);
+
+  //if (recheck) return false;
+
+  //return checkByElement()
 }
