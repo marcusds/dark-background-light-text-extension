@@ -165,8 +165,7 @@
   let class_: string | undefined;
   export { class_ as class };
   export let value: string;
-  let default_: string;
-  export { default_ as default };
+  export let default_: string;
 
   let common_value = writable('');
 
@@ -257,7 +256,7 @@
   {#if local_i === 0}
     <datalist id="css-colors">
       {#each css_keywords as kw}
-        <option value={kw} />{/each}
+        <option value={kw}></option>{/each}
     </datalist>
   {/if}
 </div>

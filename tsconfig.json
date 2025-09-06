@@ -4,6 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "node",
     "isolatedModules": false,
+    "verbatimModuleSyntax": true,
     "sourceMap": true,
     "strict": true,
     "noUnusedLocals": true,

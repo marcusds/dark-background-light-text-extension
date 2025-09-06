@@ -9,19 +9,19 @@ import type {
   Tabs,
   Browser,
 } from 'webextension-polyfill';
-import {
+import type {
   ConfiguredPages,
   ConfiguredTabs,
   StylesheetRenderer,
-  CallbackID,
 } from '../common/types';
+import { CallbackID } from '../common/types';
 import {
   get_prefs,
   set_pref,
   on_prefs_change,
   get_merged_configured_common,
-  PrefsWithValues,
 } from '../common/shared';
+import type { PrefsWithValues } from '../common/shared';
 import { methods } from '../methods/methods-with-stylesheets';
 import { relative_luminance, strip_alpha } from '../common/color_utils';
 import { modify_cors, modify_csp, version_lt } from './lib';

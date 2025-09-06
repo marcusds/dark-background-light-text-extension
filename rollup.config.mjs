@@ -8,6 +8,7 @@ import clear from 'rollup-plugin-clear';
 import svelte from 'rollup-plugin-svelte';
 import css from 'rollup-plugin-css-only';
 import autoPreprocess from 'svelte-preprocess';
+import process from 'process';
 
 export default (args) => {
   let output_opts = {};
@@ -18,6 +19,13 @@ export default (args) => {
     node_resolve(),
     commonjs(),
   ];
+  const onwarn = (warning, warn) => {
+    // Suppress circular dependency warnings from Svelte
+    if (warning.code === 'CIRCULAR_DEPENDENCY') {
+      return;
+    }
+    warn(warning);
+  };
   const dest_dir = process.env.ADDON_DIST_DIR ?? 'dist';
   if (args.watch === true) {
     output_opts = {
@@ -27,7 +35,9 @@ export default (args) => {
     };
   } else {
     output_opts = {
-      plugins: [/*terser()*/],
+      plugins: [
+        /*terser()*/
+      ],
       format: 'iife',
       sourcemap: false,
     };
@@ -35,6 +45,7 @@ export default (args) => {
   return [
     {
       input: 'src/content/index.ts',
+      onwarn,
       plugins: [
         clear({
           targets: [dest_dir],
@@ -55,6 +66,7 @@ export default (args) => {
     },
     {
       input: 'src/background/index.ts',
+      onwarn,
       plugins: [...common_plugins],
       output: {
         file: `${dest_dir}/background.js`,
@@ -63,6 +75,7 @@ export default (args) => {
     },
     {
       input: 'src/preferences/main.ts',
+      onwarn,
       plugins: [
         svelte({
           preprocess: autoPreprocess({ sourceMap: true }),
@@ -82,6 +95,7 @@ export default (args) => {
     },
     {
       input: 'src/browser-action/index.ts',
+      onwarn,
       plugins: [...common_plugins],
       output: {
         file: `${dest_dir}/browser-action.js`,
