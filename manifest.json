@@ -1,10 +1,13 @@
 {
   "manifest_version": 2,
   "name": "Simple Auto Dark Mode",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "browser_specific_settings": {
     "gecko": {
-      "id": "SimpleAutoDarkMode@public"
+      "id": "SimpleAutoDarkMode@public",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   },
   "description": "Makes every page to have light text on dark background (exact colors are customizable). Attempts to detect dark mode automatically.",

@@ -1,5 +1,14 @@
 name: Build and Release Firefox Extension
 
+# This workflow builds the Firefox extension, creates a GitHub release,
+# and optionally submits it to Firefox Add-ons (AMO).
+#
+# To enable AMO submission, add these secrets to your repository:
+# - AMO_JWT_ISSUER: Your AMO API key issuer
+# - AMO_JWT_SECRET: Your AMO API key secret
+#
+# Get these from: https://addons.mozilla.org/developers/addon/api/key/
+
 on:
   push:
     branches:
@@ -35,11 +44,13 @@ jobs:
       - name: Build Firefox extension (second pass)
         run: npm run build:firefox
 
-      - name: Get version from manifest.json
+      - name: Get version and addon ID from manifest.json
         id: get_version
         run: |
           VERSION=$(node -p "require('./manifest.json').version")
+          ADDON_ID=$(node -p "require('./manifest.json').browser_specific_settings.gecko.id")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "addon_id=$ADDON_ID" >> $GITHUB_OUTPUT
 
       - name: Rename extension.xpi based on manifest
         id: rename_xpi
@@ -56,6 +67,18 @@ jobs:
         with:
           name: extension-xpi
           path: ${{ steps.rename_xpi.outputs.xpi_name }}
+
+      - name: Submit to Firefox Add-ons (AMO)
+        # Only submit to AMO if the required secrets are configured
+        if: ${{ secrets.AMO_JWT_ISSUER && secrets.AMO_JWT_SECRET }}
+        uses: wdzeng/firefox-addon@v1
+        with:
+          addon-guid: ${{ steps.get_version.outputs.addon_id }}
+          xpi-path: ${{ steps.rename_xpi.outputs.xpi_name }}
+          src-path: ./
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
