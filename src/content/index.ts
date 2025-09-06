@@ -9,7 +9,7 @@ import type {
 } from '../common/types';
 import { methods } from '../methods/methods-with-executors';
 import { generate_urls } from '../common/generate-urls';
-import { isPageDark } from '../methods/isPageDark';
+import { isPageDark } from '../utils/isPageDark';
 import { DISABLED_ID } from '../methods/methods';
 
 declare const browser: Browser;
@@ -18,7 +18,7 @@ const tabId_promise = browser.runtime.sendMessage({ action: 'query_tabId' });
 let is_iframe: boolean;
 try {
   is_iframe = window.self !== window.top;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 } catch (_err) {
   is_iframe = true;
 }
@@ -34,7 +34,10 @@ declare global {
     merged_configured: ConfiguredPages;
     configured_tabs: ConfiguredTabs;
     rendered_stylesheets: { [key: string]: string };
-    do_it: (changes: { [s: string]: Storage.StorageChange }, forceMethod?: MethodIndex) => Promise<void>;
+    do_it: (
+      changes: { [s: string]: Storage.StorageChange },
+      forceMethod?: MethodIndex,
+    ) => Promise<void>;
   }
 }
 
@@ -43,9 +46,7 @@ if (typeof window.content_script_state === 'undefined') {
   window.content_script_state = 'normal_order';
 }
 
-async function is_default_method(
-  url: string,
-): Promise<boolean> {
+async function is_default_method(url: string): Promise<boolean> {
   if (window.prefs.enabled) {
     if (is_iframe) {
       const parent_method_number = await browser.runtime.sendMessage({
@@ -89,7 +90,7 @@ async function get_method_for_url(
   url: string,
   forceMethod?: MethodIndex,
 ): Promise<MethodMetadataWithExecutors> {
-  if(forceMethod !== undefined) {
+  if (forceMethod !== undefined) {
     return methods[forceMethod];
   }
   if (window.prefs.enabled) {
@@ -143,13 +144,18 @@ let current_method_executor: MethodExecutor | undefined;
 
 // Move dark mode check and persistence to its own function and listener
 async function checkAndPersistDarkPage() {
-  const isDefaultMethod = await is_default_method(window.document.documentURI) || await is_default_method(window.location.hostname);
+  const isDefaultMethod =
+    (await is_default_method(window.document.documentURI))
+    || (await is_default_method(window.location.hostname));
   if (!isDefaultMethod) return;
   if (isPageDark()) {
     const urlKey = generate_urls(window.document.documentURI)[0];
-    if (!window.merged_configured[urlKey] || window.merged_configured[urlKey] !== DISABLED_ID) {
+    if (
+      !window.merged_configured[urlKey]
+      || window.merged_configured[urlKey] !== DISABLED_ID
+    ) {
       const tabId = await tabId_promise;
-      const url = window.configured_tabs?.[tabId]
+      const url = window.configured_tabs?.[tabId];
       await browser.runtime.sendMessage({
         action: 'set_configured_page',
         key: url,
@@ -183,7 +189,6 @@ function observeClassListChanges() {
 }
 */
 
-
 document.addEventListener('DOMContentLoaded', () => {
   checkAndPersistDarkPage();
   //observeClassListChanges();
@@ -197,11 +202,17 @@ document.onreadystatechange = () => {
 };
 */
 
-window.do_it = async function do_it(changes: {
-  [s: string]: Storage.StorageChange;
-}, forceMethod?: MethodIndex): Promise<void> {
+window.do_it = async function do_it(
+  changes: {
+    [s: string]: Storage.StorageChange;
+  },
+  forceMethod?: MethodIndex,
+): Promise<void> {
   try {
-    const new_method = await get_method_for_url(window.document.documentURI, forceMethod);
+    const new_method = await get_method_for_url(
+      window.document.documentURI,
+      forceMethod,
+    );
     if (resolve_current_method_promise) {
       resolve_current_method_promise(new_method);
       resolve_current_method_promise = null;
@@ -251,27 +262,25 @@ window.do_it = async function do_it(changes: {
 interface GetMethodNumberMsg {
   action: 'get_method_number';
 }
-browser.runtime.onMessage.addListener(
-  async (message: GetMethodNumberMsg) => {
-    try {
-      // TODO: statically typed runtime.onMessage
-      if (!message.action) {
-        console.error('bad message!', message);
-        return;
-      }
-      switch (message.action) {
-        case 'get_method_number':
-          return (await current_method_promise).number;
-        default:
-          console.error('bad message 2!', message);
-          return;
-      }
-    } catch (e) {
-      console.error(e);
+browser.runtime.onMessage.addListener(async (message: GetMethodNumberMsg) => {
+  try {
+    // TODO: statically typed runtime.onMessage
+    if (!message.action) {
+      console.error('bad message!', message);
+      return;
     }
-    return;
-  },
-);
+    switch (message.action) {
+      case 'get_method_number':
+        return (await current_method_promise).number;
+      default:
+        console.error('bad message 2!', message);
+        return;
+    }
+  } catch (e) {
+    console.error(e);
+  }
+  return;
+});
 
 if (window.content_script_state === 'registered_content_script_first') {
   /* #226 part 1 workaround */

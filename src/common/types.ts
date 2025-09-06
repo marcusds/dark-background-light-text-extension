@@ -131,7 +131,7 @@ export interface DefaultColors {
 }
 
 // eslint bug?
- 
+
 export const enum CallbackID {
   INSERT_CSS,
   REMOVE_CSS,

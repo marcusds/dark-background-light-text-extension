@@ -5,7 +5,8 @@
     "test": "vitest run",
     "coverage": "vitest run --coverage",
     "build:firefox": "npm run build && cd dist/ && bestzip ../extension.xpi *",
-    "prettier": "prettier --check ./src/",
+    "prettier": "prettier -c ./src/",
+    "prettier:fix": "prettier -w ./src/",
     "lint": "eslint ./src/ --ext .js,.ts",
     "lint:fix": "eslint --fix ./src/ --ext .js,.ts",
     "typecheck": "tsc --noEmit"

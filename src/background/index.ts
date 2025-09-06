@@ -127,7 +127,7 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
         break;
       // @ts-expect-error: 7029
       case 'get_my_tab_configuration':
-        message.tab_id = sender.tab?.id;  
+        message.tab_id = sender.tab?.id;
       // falls through
       case 'get_tab_configuration':
         if (
@@ -177,7 +177,7 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
         );
       case 'set_configured_page': {
         let parsed;
-        if(!message.key) {
+        if (!message.key) {
           const current_tab = (
             await browser.tabs.query({
               //                    popup in the new Fenix is now in a separate window
@@ -266,7 +266,7 @@ async function send_prefs(changes: { [s: string]: Storage.StorageChange }) {
   // same for already loaded pages
   const new_data_for_tabs: ExtensionTypes.InjectDetails = { code };
   for (const key of Object.keys(new_data)) {
-    if (["allFrames", "matchAboutBlank", "runAt"].indexOf(key) >= 0) {
+    if (['allFrames', 'matchAboutBlank', 'runAt'].indexOf(key) >= 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (new_data_for_tabs as any)[key] = (new_data as any)[key];
     }
@@ -360,13 +360,14 @@ function is_probably_service_worker(
   }
   const origin_url = new URL(details.originUrl);
   // likely a request from Service Worker
-  return details.type === 'xmlhttprequest'
+  return (
+    details.type === 'xmlhttprequest'
     && details.tabId === -1
     && (origin_url.protocol === 'https:'
       || origin_url.hostname === 'localhost'
       || origin_url.hostname === '127.0.0.1'
-      || origin_url.hostname === '[::1]');
-
+      || origin_url.hostname === '[::1]')
+  );
 }
 
 function get_content_type(

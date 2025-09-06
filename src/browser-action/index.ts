@@ -1,5 +1,9 @@
 import type { Browser } from 'webextension-polyfill';
-import { get_merged_configured_common, get_prefs, set_pref, } from '../common/shared';
+import {
+  get_merged_configured_common,
+  get_prefs,
+  set_pref,
+} from '../common/shared';
 import { methods } from '../methods/methods';
 import { hint_marker } from '../common/generate-urls';
 import { smart_generate_urls } from '../common/smart-generate-urls';
@@ -48,7 +52,6 @@ declare const browser: Browser;
 
     return { list: result_list, preselect };
   }
-
 
   const current_tab = (
     await browser.tabs.query({
@@ -207,7 +210,7 @@ declare const browser: Browser;
     container.appendChild(msg);
   } else {
     const title = document.createElement('div');
-    title.textContent = 'Dark Background and Light Text options for:';
+    title.textContent = 'Options for:';
     title.setAttribute('class', 'options_for');
     container.appendChild(title);
     const select = document.createElement('select');

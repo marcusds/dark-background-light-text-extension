@@ -141,7 +141,6 @@ export function on_prefs_change(
     for (const pref of Object.keys(changes)) {
       // if option has been removed, it means that it's value has been set to default
       if (!Object.prototype.hasOwnProperty.call(changes[pref], 'newValue')) {
-         
         changes[pref].newValue = prefs_keys_with_defaults[pref];
       }
     }

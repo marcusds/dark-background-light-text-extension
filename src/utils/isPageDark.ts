@@ -10,20 +10,38 @@
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 };*/
 
+function checkByElement() {
+  // Add a div to the page.
+  // Set its style to position: absolute: right: 0; bottom: 0;
+}
+
 export function isPageDark() {
   const doc = document.documentElement;
   const body = document.body;
   const htmlEl = window.document.getElementsByTagName('html')[0];
 
-
   // Check for common dark mode classes
-  const darkClassNames = ['dark', 'night', 'dark-mode', 'theme-dark', 'darkTheme', 'skin-theme-clientpref-os'];
+  const darkClassNames = [
+    'dark',
+    'night',
+    'dark-mode',
+    'theme-dark',
+    'darkTheme',
+    'skin-theme-clientpref-os',
+  ];
   const hasDarkClass = (el: Element | null) =>
-    !!el && darkClassNames.some(cls => el.getAttribute('class')?.includes(cls));
+    !!el
+    && darkClassNames.some((cls) => el.getAttribute('class')?.includes(cls));
 
-  if (hasDarkClass(doc) || hasDarkClass(body) || hasDarkClass(htmlEl)) return true;
+  if (hasDarkClass(doc) || hasDarkClass(body) || hasDarkClass(htmlEl))
+    return true;
 
   // Check for data-theme="dark"
-  return doc.getAttribute('data-theme')?.toLowerCase() === 'dark' ||
-    body.getAttribute('data-theme')?.toLowerCase() === 'dark';
+  if (
+    doc.getAttribute('data-theme')?.toLowerCase() === 'dark'
+    || body.getAttribute('data-theme')?.toLowerCase() === 'dark'
+  )
+    return true;
+
+  return checkByElement();
 }

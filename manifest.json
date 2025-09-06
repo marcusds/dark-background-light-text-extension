@@ -52,7 +52,7 @@
       "48": "icons/icon48.png",
       "64": "icons/icon64.png"
     },
-    "default_title": "Dark Background and Light Text",
+    "default_title": "Simple Auto Dark Mode",
     "default_popup": "ui/configure-for-current-tab-panel.html"
   },
   "options_ui": {

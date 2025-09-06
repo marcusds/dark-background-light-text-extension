@@ -78,15 +78,18 @@ export abstract class StylesheetProcessorAbstract {
       const shadow_roots = this.shadow_roots;
       const attachShadowReal = Element.prototype.attachShadow;
 
-       
       function attachShadow(this: Element, init: ShadowRootInit) {
         const root = attachShadowReal.call(this, init);
         shadow_roots.push(new WeakRef(root));
         return root;
       }
-      exportFunction(attachShadow as (...args: unknown[]) => unknown, Element.prototype, {
-        defineAs: 'attachShadow',
-      });
+      exportFunction(
+        attachShadow as (...args: unknown[]) => unknown,
+        Element.prototype,
+        {
+          defineAs: 'attachShadow',
+        },
+      );
     }
   }
 
@@ -257,7 +260,7 @@ export abstract class StylesheetProcessorAbstract {
         ownerRule.parentStyleSheet ?? stylesheet.parentStyleSheet!,
       ); // #169
     }
-     
+
     return;
   }
 
@@ -399,17 +402,15 @@ export abstract class StylesheetProcessorAbstract {
 
     if (!base_url) {
       if (sheet.href && !sheet.href.startsWith('data:')) {
-         
         base_url = new URL(sheet.href, document.documentURI).href;
       } else {
-         
         base_url = document.documentURI;
       }
     }
     try {
       if (sheet.cssRules === null) {
         // access to .cssRules will throw in Firefox
-         
+
         throw { name: 'SecurityError' }; // for chrome
       }
     } catch (e) {
@@ -452,13 +453,15 @@ export abstract class StylesheetProcessorAbstract {
     if (this.stop) {
       return;
     }
-     
+
     switch (CSSRule_v.type) {
-      case 1: { // CSSRule.STYLE_RULE
+      case 1: {
+        // CSSRule.STYLE_RULE
         this.process_CSSStyleRule(CSSRule_v as CSSStyleRule, base_url);
         break;
       }
-      case 3: { // CSSRule.IMPORT_RULE
+      case 3: {
+        // CSSRule.IMPORT_RULE
         // this.process_CSSImportRule(CSSRule_v);
         const importSheet = (CSSRule_v as CSSImportRule).styleSheet;
         if (importSheet) {
@@ -466,11 +469,13 @@ export abstract class StylesheetProcessorAbstract {
         }
         break;
       }
-      case 4: { // CSSRule.MEDIA_RULE
+      case 4: {
+        // CSSRule.MEDIA_RULE
         this.process_CSSGroupingRule(CSSRule_v as CSSMediaRule, base_url);
         break;
       }
-      case 12: { // CSSRule.SUPPORTS_RULE
+      case 12: {
+        // CSSRule.SUPPORTS_RULE
         this.process_CSSGroupingRule(CSSRule_v as CSSSupportsRule, base_url);
         break;
       }
