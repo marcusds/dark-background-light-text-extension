@@ -213,6 +213,10 @@ export class StylesheetColorProcessor
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _tagname: string,
   ): void {
+    // Skip processing for the page dark test div
+    if (selector.includes('#is-page-dark-test-div')) {
+      return;
+    }
     const var_properties = [];
     for (const p of CSSStyleDeclaration_v) {
       if (p.indexOf('--') === 0 && p.indexOf(this.var_name_postfix) < 0) {

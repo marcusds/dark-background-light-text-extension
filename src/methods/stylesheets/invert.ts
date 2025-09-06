@@ -14,7 +14,7 @@ export function render({}: RenderOptions) {
     right: 0 !important;
     margin: 0 !important;
     pointer-events: none !important;
-    z-index: 2147483647 !important;
+    z-index: 2147483646 !important;
     backdrop-filter: invert(1) hue-rotate(180deg) !important;
   }
   img:not(.mwe-math-fallback-image-inline):not([alt="inline_formula"]),

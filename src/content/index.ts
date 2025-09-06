@@ -62,9 +62,8 @@ async function is_default_method(url: string): Promise<boolean> {
     let tab_configuration: MethodIndex | boolean = false;
     if (Object.keys(window.configured_tabs).length > 0) {
       const tabId = await tabId_promise;
-      tab_configuration = tabId in window.configured_tabs
-        ? window.configured_tabs[tabId]
-        : false;
+      tab_configuration =
+        tabId in window.configured_tabs ? window.configured_tabs[tabId] : false;
     }
 
     if (tab_configuration !== false) {
@@ -105,9 +104,8 @@ async function get_method_for_url(
     let tab_configuration: MethodIndex | boolean = false;
     if (Object.keys(window.configured_tabs).length > 0) {
       const tabId = await tabId_promise;
-      tab_configuration = tabId in window.configured_tabs
-        ? window.configured_tabs[tabId]
-        : false;
+      tab_configuration =
+        tabId in window.configured_tabs ? window.configured_tabs[tabId] : false;
     }
     if (tab_configuration !== false) {
       return methods[tab_configuration];
@@ -223,6 +221,7 @@ window.do_it = async function do_it(
       window.document.documentURI,
       forceMethod,
     );
+    console.log('new_method', new_method, forceMethod);
     if (resolve_current_method_promise) {
       resolve_current_method_promise(new_method);
       resolve_current_method_promise = null;
@@ -234,9 +233,12 @@ window.do_it = async function do_it(
       || new_method.number !== current_method.number
       || Object.keys(changes).some((key) => key.indexOf('_color') >= 0)
     ) {
-      document.querySelectorAll('style.dblt-ykjmwcnxmi')
-        .forEach(node => node.remove());
+      document
+        .querySelectorAll('style.dblt-ykjmwcnxmi')
+        .forEach((node) => node.remove());
+      console.log('new_method.stylesheets', new_method.stylesheets);
       for (const css_renderer of new_method.stylesheets) {
+        console.log('css_renderer.name', css_renderer.name);
         const style_node = document.createElement('style');
         style_node.setAttribute('data-source', css_renderer.name);
         style_node.classList.add('dblt-ykjmwcnxmi');
@@ -247,22 +249,33 @@ window.do_it = async function do_it(
         document.documentElement.appendChild(style_node);
         if (!document.body) {
           const appendNode = () => {
+            // console.log(2, window.getComputedStyle(document.body)?.color);
             document.documentElement.appendChild(style_node);
           };
           if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', appendNode, { once: true });
+            document.addEventListener('DOMContentLoaded', appendNode, {
+              once: true,
+            });
           } else {
             appendNode();
           }
         }
       }
       if (current_method_executor) {
+        // console.log(3, window.getComputedStyle(document.body)?.color);
         current_method_executor.unload_from_window();
         current_method_executor = undefined;
       }
       if (new_method.executor) {
+        // console.log(4, window.getComputedStyle(document.body)?.color);
         current_method_executor = new new_method.executor(window, window.prefs);
+        console.log('new_method', new_method);
         current_method_executor.load_into_window();
+        /*if (document.readyState === 'complete') {
+          document
+            .querySelectorAll('.dblt-ykjmwcnxmi')
+            .forEach((el) => el.setAttribute('media', 'not all'));
+        }*/
       }
     }
     current_method = new_method;
@@ -280,11 +293,11 @@ browser.runtime.onMessage.addListener(async (message: GetMethodNumberMsg) => {
       console.error('Invalid message format:', message);
       return undefined;
     }
-    
+
     if (message.action === 'get_method_number') {
       return (await current_method_promise).number;
     }
-    
+
     console.error('Unknown message action:', message.action);
     return undefined;
   } catch (error) {

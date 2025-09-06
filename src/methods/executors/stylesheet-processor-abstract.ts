@@ -523,6 +523,11 @@ export abstract class StylesheetProcessorAbstract {
   }
 
   process_HTMLElement(HTMLElement_v: HTMLElement): void {
+    // Skip processing for the page dark test div
+    if (HTMLElement_v.id === 'is-page-dark-test-div') {
+      return;
+    }
+    
     const old_style = HTMLElement_v.getAttribute('style');
     if (!old_style || this.overridden_inline_styles.has(old_style)) {
       return;

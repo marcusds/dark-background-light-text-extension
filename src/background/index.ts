@@ -77,6 +77,7 @@ function process_stylesheet(
     < relative_luminance(
       strip_alpha(parseCSSColor(prefs.default_foreground_color as string)!),
     );
+  console.log('render', sheet);
   return sheet.render({
     default_foreground_color: prefs.default_foreground_color as string,
     default_background_color: prefs.default_background_color as string,
@@ -262,9 +263,12 @@ async function send_prefs(changes: { [s: string]: Storage.StorageChange }) {
     }
   }
   const tabs = await browser.tabs.query({});
-  const scriptPromises = tabs.map(tab => 
-    browser.tabs.executeScript(tab.id, new_data_for_tabs)
-      .catch(error => console.error(`Failed to inject script into tab ${tab.id}:`, error))
+  const scriptPromises = tabs.map((tab) =>
+    browser.tabs
+      .executeScript(tab.id, new_data_for_tabs)
+      .catch((error) =>
+        console.error(`Failed to inject script into tab ${tab.id}:`, error),
+      ),
   );
   await Promise.allSettled(scriptPromises);
 }

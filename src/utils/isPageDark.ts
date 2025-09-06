@@ -10,7 +10,9 @@
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 };*/
 
-/*function checkByElement() {
+import { darkness } from './darkness';
+
+function checkByElement() {
   // Add a div to the page.
   // Set its style to position: absolute; right: 0; bottom: 0;
   const id = 'is-page-dark-test-div';
@@ -23,14 +25,43 @@
     testDiv.style.bottom = '0';
     testDiv.style.width = '100px';
     testDiv.style.height = '100px';
-    // testDiv.style.zIndex = '-9999';
-    testDiv.style.pointerEvents = 'none';
-    testDiv.style.background = 'white';
+    testDiv.style.zIndex = '2147483647 !important';
+    //testDiv.style.pointerEvents = 'none';
     testDiv.style.border = 'green';
+    testDiv.style.borderWidth = '1px';
+    testDiv.style.borderStyle = 'solid';
+    //testDiv.style.color = 'green';
+    //testDiv.style.color = 'white';
+    testDiv.innerText = 'TEst me baby one more time';
     document.body.appendChild(testDiv);
   }
+  // Get computed color style
+  console.log(1, testDiv, window.getComputedStyle(testDiv).color);
+  const computedColor = window.getComputedStyle(testDiv).color;
+  // Parse rgb color string
+  const match = computedColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (match) {
+    const r = parseInt(match[1], 10);
+    const g = parseInt(match[2], 10);
+    const b = parseInt(match[3], 10);
+    // Use darkness() to check if color is very close to white
+    // darkness() returns 0 for white, 1 for black
+    // If darkness is very low (e.g. < 0.05), treat as white
+    const d = darkness(r, g, b);
+    console.log('matchmatchmatch', d, match);
+    if (d < 0.4) {
+      return true;
+    }
+  }
+  if (
+    computedColor === 'white'
+    || computedColor === '#fff'
+    || computedColor === '#ffffff'
+  ) {
+    return true;
+  }
   return false;
-}*/
+}
 
 // Check for common dark mode classes
 const darkClassNames = ['dark', 'night', 'skin-theme-clientpref-os'];
@@ -91,9 +122,13 @@ export function isPageDark(_recheck = false) {
 
   if (hasDarkData(allEls)) return true;
 
-  return hasDarkStyle(allEls);
+  if (hasDarkStyle(allEls)) return true;
 
   //if (recheck) return false;
 
-  //return checkByElement()
+  const test = checkByElement();
+
+  console.log('we are testing', test);
+
+  return false;
 }
