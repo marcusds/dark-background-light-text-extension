@@ -223,7 +223,6 @@ window.do_it = async function do_it(
       window.document.documentURI,
       forceMethod,
     );
-    console.log('new_method', new_method, forceMethod);
     if (resolve_current_method_promise) {
       resolve_current_method_promise(new_method);
       resolve_current_method_promise = null;
@@ -238,9 +237,7 @@ window.do_it = async function do_it(
       document
         .querySelectorAll('style.dblt-ykjmwcnxmi')
         .forEach((node) => node.remove());
-      console.log('new_method.stylesheets', new_method.stylesheets);
       for (const css_renderer of new_method.stylesheets) {
-        console.log('css_renderer.name', css_renderer.name);
         const style_node = document.createElement('style');
         style_node.setAttribute('data-source', css_renderer.name);
         style_node.classList.add('dblt-ykjmwcnxmi');
