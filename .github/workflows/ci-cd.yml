@@ -59,21 +59,13 @@ jobs:
         current_version=$(node -p "require('./manifest.json').version")
         echo "current_version=$current_version" >> $GITHUB_OUTPUT
         
-        # Get previous version from the last commit that changed manifest.json
-        git log --oneline --follow manifest.json | head -2 | tail -1 | cut -d' ' -f1 > /tmp/prev_commit || echo "no-previous" > /tmp/prev_commit
-        prev_commit=$(cat /tmp/prev_commit)
+        # Get previous version from the previous commit
+        previous_version=$(git show HEAD~1:manifest.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).version" 2>/dev/null || echo "0.0.0")
+        echo "prev_version=$previous_version" >> $GITHUB_OUTPUT
         
-        if [ "$prev_commit" != "no-previous" ]; then
-          prev_version=$(git show $prev_commit:manifest.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).version" 2>/dev/null || echo "0.0.0")
-        else
-          prev_version="0.0.0"
-        fi
-        
-        echo "prev_version=$prev_version" >> $GITHUB_OUTPUT
-        
-        if [ "$current_version" != "$prev_version" ]; then
+        if [ "$current_version" != "$previous_version" ]; then
           echo "version_changed=true" >> $GITHUB_OUTPUT
-          echo "Version changed from $prev_version to $current_version"
+          echo "Version changed from $previous_version to $current_version"
         else
           echo "version_changed=false" >> $GITHUB_OUTPUT
           echo "Version unchanged: $current_version"
