@@ -26,13 +26,12 @@ export function render({}: RenderOptions) {
 
 @supports not (backdrop-filter: invert(1)) {
   html,
-  // TODO: "black on transparent" mark
   img:not(.mwe-math-fallback-image-inline):not([alt="inline_formula"]),
   video,
   div#viewer.pdfViewer div.page {
     filter: invert(1) hue-rotate(180deg) !important;
   }
-  // #28
+  /* #28 */
   :fullscreen video,
   video:fullscreen {
     filter: none !important;

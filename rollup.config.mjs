@@ -9,10 +9,12 @@ import svelte from 'rollup-plugin-svelte';
 import css from 'rollup-plugin-css-only';
 import autoPreprocess from 'svelte-preprocess';
 import process from 'process';
+import minCssPlugin from './rollup-plugin-min-css.mjs';
 
 export default (args) => {
   let output_opts = {};
   const common_plugins = [
+    minCssPlugin(),
     typescript({
       sourceMap: args.watch === true,
     }),
