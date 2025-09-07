@@ -3,164 +3,12 @@
 </script>
 
 <script lang="ts">
-  import { parseCSSColor } from 'csscolorparser-ts';
   import { createEventDispatcher, onDestroy } from 'svelte';
   import { writable } from 'svelte/store';
   import { strip_alpha } from '../common/color_utils';
   import type { RGBA } from '../common/types';
 
   const local_i = global_i++;
-
-  const css_keywords = [
-    'aliceblue',
-    'antiquewhite',
-    'aqua',
-    'aquamarine',
-    'azure',
-    'beige',
-    'bisque',
-    'black',
-    'blanchedalmond',
-    'blue',
-    'blueviolet',
-    'brown',
-    'burlywood',
-    'cadetblue',
-    'chartreuse',
-    'chocolate',
-    'coral',
-    'cornflowerblue',
-    'cornsilk',
-    'crimson',
-    'cyan',
-    'darkblue',
-    'darkcyan',
-    'darkgoldenrod',
-    'darkgray',
-    'darkgreen',
-    'darkgrey',
-    'darkkhaki',
-    'darkmagenta',
-    'darkolivegreen',
-    'darkorange',
-    'darkorchid',
-    'darkred',
-    'darksalmon',
-    'darkseagreen',
-    'darkslateblue',
-    'darkslategray',
-    'darkslategrey',
-    'darkturquoise',
-    'darkviolet',
-    'deeppink',
-    'deepskyblue',
-    'dimgray',
-    'dimgrey',
-    'dodgerblue',
-    'firebrick',
-    'floralwhite',
-    'forestgreen',
-    'fuchsia',
-    'gainsboro',
-    'ghostwhite',
-    'gold',
-    'goldenrod',
-    'gray',
-    'green',
-    'greenyellow',
-    'grey',
-    'honeydew',
-    'hotpink',
-    'indianred',
-    'indigo',
-    'ivory',
-    'khaki',
-    'lavender',
-    'lavenderblush',
-    'lawngreen',
-    'lemonchiffon',
-    'lightblue',
-    'lightcoral',
-    'lightcyan',
-    'lightgoldenrodyellow',
-    'lightgray',
-    'lightgreen',
-    'lightgrey',
-    'lightpink',
-    'lightsalmon',
-    'lightseagreen',
-    'lightskyblue',
-    'lightslategray',
-    'lightslategrey',
-    'lightsteelblue',
-    'lightyellow',
-    'lime',
-    'limegreen',
-    'linen',
-    'magenta',
-    'maroon',
-    'mediumaquamarine',
-    'mediumblue',
-    'mediumorchid',
-    'mediumpurple',
-    'mediumseagreen',
-    'mediumslateblue',
-    'mediumspringgreen',
-    'mediumturquoise',
-    'mediumvioletred',
-    'midnightblue',
-    'mintcream',
-    'mistyrose',
-    'moccasin',
-    'navajowhite',
-    'navy',
-    'oldlace',
-    'olive',
-    'olivedrab',
-    'orange',
-    'orangered',
-    'orchid',
-    'palegoldenrod',
-    'palegreen',
-    'paleturquoise',
-    'palevioletred',
-    'papayawhip',
-    'peachpuff',
-    'peru',
-    'pink',
-    'plum',
-    'powderblue',
-    'purple',
-    'rebeccapurple',
-    'red',
-    'rosybrown',
-    'royalblue',
-    'saddlebrown',
-    'salmon',
-    'sandybrown',
-    'seagreen',
-    'seashell',
-    'sienna',
-    'silver',
-    'skyblue',
-    'slateblue',
-    'slategray',
-    'slategrey',
-    'snow',
-    'springgreen',
-    'steelblue',
-    'tan',
-    'teal',
-    'thistle',
-    'tomato',
-    'turquoise',
-    'violet',
-    'wheat',
-    'white',
-    'whitesmoke',
-    'yellow',
-    'yellowgreen',
-  ];
 
   let class_: string | undefined;
   export { class_ as class };
@@ -183,24 +31,16 @@
     ...(is_wrong ? ['is-wrong'] : []),
   ].join(' ');
 
-  function compare_RGBA(c1: RGBA | null, c2: RGBA | null): boolean {
-    return (
-      !!c1
-      && !!c2
-      && c1[0] == c2[0]
-      && c1[1] == c2[1]
-      && c1[2] == c2[2]
-      && c1[3] == c2[3]
-    );
+  // Hex color validation regex (supports #RGB, #RRGGBB, #RRGGBBAA, #RGBA)
+  function isValidHexColor(str: string): boolean {
+    return /^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(str);
   }
 
   onDestroy(
     common_value.subscribe((val) => {
       color_value = val;
       if (
-        text_value
-        && val
-        && !compare_RGBA(parseCSSColor(text_value), parseCSSColor(val))
+        text_value && val && text_value.toLowerCase() !== val.toLowerCase()
       ) {
         text_value = val;
       }
@@ -209,28 +49,25 @@
 
   $: common_value.update(() => color_value);
   $: {
-    let parsed: RGBA | null = parseCSSColor(text_value);
-    if (parsed) {
-      common_value.update(() => to_hex_color(parsed!));
+    if (isValidHexColor(text_value)) {
+      common_value.update(() => text_value);
       is_wrong = false;
     } else {
       is_wrong = true;
     }
   }
 
-  function to_hex_color(a: RGBA): string {
-    return `#${strip_alpha(a)
-      .map((c) => c.toString(16).padStart(2, '0'))
-      .join('')}`;
+  function to_hex_color(a: string): string {
+    // Already validated as hex, just return in lowercase
+    return a.toLowerCase();
   }
 
   const dispatch = createEventDispatcher();
   function emit(is_text: boolean) {
     let new_value: string;
     if (is_text) {
-      let parsed = parseCSSColor(text_value);
-      if (parsed) {
-        new_value = to_hex_color(parsed);
+      if (isValidHexColor(text_value)) {
+        new_value = to_hex_color(text_value);
       } else {
         new_value = default_;
         text_value = new_value;
@@ -250,15 +87,8 @@
     type="text"
     on:change={() => emit(true)}
     class={text_class}
-    list="css-colors"
     on:animationend={() => (shake_it = false)}
   />
-  {#if local_i === 0}
-    <datalist id="css-colors">
-      {#each css_keywords as kw}
-        <option value={kw}></option>{/each}
-    </datalist>
-  {/if}
 </div>
 
 <style>

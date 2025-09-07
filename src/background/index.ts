@@ -1,4 +1,3 @@
-import { parseCSSColor } from 'csscolorparser-ts';
 import type {
   Runtime,
   ContentScripts,
@@ -12,6 +11,7 @@ import type {
 import type {
   ConfiguredPages,
   ConfiguredTabs,
+  RGB,
   StylesheetRenderer,
 } from '../common/types';
 import { CallbackID } from '../common/types';
@@ -23,10 +23,11 @@ import {
 } from '../common/shared';
 import type { PrefsWithValues } from '../common/shared';
 import { methods } from '../methods/methods-with-stylesheets';
-import { relative_luminance, strip_alpha } from '../common/color_utils';
+import { relative_luminance } from '../common/color_utils';
 import { modify_cors, modify_csp, version_lt } from './lib';
 import * as base_style from '../methods/stylesheets/base';
 import { method_change } from '../methods/setMethod';
+import { stringToRgba } from '../utils/hexToRgb';
 
 declare const browser: Browser;
 
@@ -72,10 +73,10 @@ function process_stylesheet(
 ) {
   const is_darkbg =
     relative_luminance(
-      strip_alpha(parseCSSColor(prefs.default_background_color as string)!),
+      stringToRgba(prefs.default_background_color as string, false) as RGB,
     )
     < relative_luminance(
-      strip_alpha(parseCSSColor(prefs.default_foreground_color as string)!),
+      stringToRgba(prefs.default_foreground_color as string, false) as RGB,
     );
   return sheet.render({
     default_foreground_color: prefs.default_foreground_color as string,
