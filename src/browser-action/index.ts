@@ -1,4 +1,4 @@
-import type { Browser } from 'webextension-polyfill';
+// Using native Firefox WebExtensions API
 import {
   get_merged_configured_common,
   get_prefs,
@@ -11,7 +11,7 @@ import type { ConfiguredPages, MethodIndex } from '../common/types';
 import '../common/ui-style';
 import { CURRENT_TAB_LABEL } from '../consts';
 
-declare const browser: Browser;
+declare const browser: typeof chrome;
 
 (async () => {
   function get_merged_configured(): Promise<ConfiguredPages> {
@@ -82,7 +82,8 @@ declare const browser: Browser;
     });
   } catch {
     // Using empty catch block as the error value is not needed
-    const browserInfo = await browser.runtime.getBrowserInfo();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const browserInfo = await (browser.runtime as any).getBrowserInfo();
     message = `Modification of this page is not available due to ${browserInfo.name} restrictions`;
   }
   if (!message) {
@@ -112,9 +113,11 @@ declare const browser: Browser;
   body.replaceChildren();
 
   async function handle_choose_url() {
-    const urlSelect = document.getElementById('url_select') as HTMLSelectElement;
+    const urlSelect = document.getElementById(
+      'url_select',
+    ) as HTMLSelectElement;
     const url = urlSelect.value;
-    
+
     let current_url_method;
     if (url === CURRENT_TAB_LABEL) {
       current_url_method = await browser.runtime.sendMessage({
@@ -124,33 +127,39 @@ declare const browser: Browser;
     } else {
       current_url_method = configured[url];
     }
-    
+
     const methodId = current_url_method ?? '-1';
-    const methodRadio = document.getElementById(`method_${methodId}`) as HTMLInputElement;
+    const methodRadio = document.getElementById(
+      `method_${methodId}`,
+    ) as HTMLInputElement;
     if (methodRadio) {
       methodRadio.checked = true;
     }
   }
 
   async function handle_method_change() {
-    const checkedMethod = document.querySelector('input.methods:checked') as HTMLInputElement;
+    const checkedMethod = document.querySelector(
+      'input.methods:checked',
+    ) as HTMLInputElement;
     if (!checkedMethod) return;
-    
+
     const method_n = parseInt(checkedMethod.value, 10);
-    const urlSelect = document.getElementById('url_select') as HTMLSelectElement;
+    const urlSelect = document.getElementById(
+      'url_select',
+    ) as HTMLSelectElement;
     const url = urlSelect.value;
 
     if (url === CURRENT_TAB_LABEL) {
       browser.runtime.sendMessage({
         action: 'set_configured_tab',
         key: current_tab.id,
-        value: method_n >= 0 ? method_n.toString() as MethodIndex : null,
+        value: method_n >= 0 ? (method_n.toString() as MethodIndex) : null,
       });
     } else if (isPrivate) {
       browser.runtime.sendMessage({
         action: 'set_configured_private',
         key: url,
-        value: method_n >= 0 ? method_n.toString() as MethodIndex : null,
+        value: method_n >= 0 ? (method_n.toString() as MethodIndex) : null,
       });
     } else {
       const configured_pages = await get_prefs('configured_pages');

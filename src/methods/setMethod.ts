@@ -1,9 +1,9 @@
 import { get_prefs, set_pref } from '../common/shared';
 import { CURRENT_TAB_LABEL } from '../consts';
-import type { Browser } from 'webextension-polyfill';
 import type { MethodIndex } from '../common/types';
 
-declare const browser: Browser;
+// Using native Firefox WebExtensions API
+declare const browser: typeof chrome;
 
 export async function method_change(url: string, method_n: number) {
   const current_tab = (

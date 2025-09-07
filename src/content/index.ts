@@ -1,4 +1,4 @@
-import type { Browser, Storage } from 'webextension-polyfill';
+// Using native Firefox WebExtensions API types
 import type {
   AddonOptions,
   ConfiguredPages,
@@ -13,7 +13,7 @@ import { createDarkPageHandler } from './dark-page-handler';
 import { createDomObserver } from './dom-observer';
 import { createMessageHandler } from './message-handler';
 
-declare const browser: Browser;
+declare const browser: typeof chrome;
 
 const tabId_promise = browser.runtime.sendMessage({ action: 'query_tabId' });
 const is_iframe = detectIframe();
@@ -30,7 +30,7 @@ declare global {
     configured_tabs: ConfiguredTabs;
     rendered_stylesheets: { [key: string]: string };
     do_it: (
-      changes: { [s: string]: Storage.StorageChange },
+      changes: { [s: string]: chrome.storage.StorageChange },
       forceMethod?: MethodIndex,
     ) => Promise<void>;
   }
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.do_it = async function do_it(
   changes: {
-    [s: string]: Storage.StorageChange;
+    [s: string]: chrome.storage.StorageChange;
   },
   forceMethod?: MethodIndex,
 ): Promise<void> {

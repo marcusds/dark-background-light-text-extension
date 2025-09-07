@@ -1,4 +1,4 @@
-import type { Browser, Storage } from 'webextension-polyfill';
+// Using native Firefox WebExtensions API types
 import type {
   Preferences,
   PrefsType,
@@ -11,7 +11,7 @@ import type {
 } from './types';
 import { methods } from '../methods/methods';
 
-declare const browser: Browser;
+declare const browser: typeof chrome;
 
 export const preferences: Preferences = [
   {
@@ -132,7 +132,7 @@ export function set_pref(pref: string, value: PrefsType): Promise<void> {
 }
 
 export function on_prefs_change(
-  callback: (changes: { [s: string]: Storage.StorageChange }) => void,
+  callback: (changes: { [s: string]: chrome.storage.StorageChange }) => void,
 ) {
   browser.storage.onChanged.addListener((changes, areaName) => {
     if (areaName !== 'local') {

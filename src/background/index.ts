@@ -1,13 +1,4 @@
-import type {
-  Runtime,
-  ContentScripts,
-  Manifest,
-  ExtensionTypes,
-  Storage,
-  WebRequest,
-  Tabs,
-  Browser,
-} from 'webextension-polyfill';
+// Using native Firefox WebExtensions API types
 import type {
   ConfiguredPages,
   ConfiguredTabs,
@@ -29,9 +20,9 @@ import * as base_style from '../methods/stylesheets/base';
 import { method_change } from '../methods/setMethod';
 import { stringToRgba } from '../utils/hexToRgb';
 
-declare const browser: Browser;
+declare const browser: typeof chrome;
 
-const platform_info: Promise<Runtime.PlatformInfo> =
+const platform_info: Promise<chrome.runtime.PlatformInfo> =
   'getPlatformInfo' in browser.runtime
     ? browser.runtime.getPlatformInfo()
     : Promise.reject();
@@ -109,7 +100,8 @@ browser.runtime.onMessage.addListener(async (message: any, sender: any) => {
           runAt: 'document_start',
         });
       case CallbackID.REMOVE_CSS:
-        return await browser.tabs.removeCSS(sender.tab?.id, {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return await (browser.tabs as any).removeCSS(sender.tab?.id, {
           code: message.code,
           frameId: sender.frameId,
           cssOrigin: 'user',
@@ -195,14 +187,18 @@ browser.runtime.onMessage.addListener(async (message: any, sender: any) => {
   }
 });
 
-const prev_scripts: ContentScripts.RegisteredContentScript[] = [];
-async function send_prefs(changes: { [s: string]: Storage.StorageChange }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const prev_scripts: any[] = [];
+async function send_prefs(changes: {
+  [s: string]: chrome.storage.StorageChange;
+}) {
   prev_scripts.forEach((cs) => cs.unregister());
   prev_scripts.length = 0;
   const from_manifest = (
-    browser.runtime.getManifest() as Manifest.WebExtensionManifest
+    browser.runtime.getManifest() as chrome.runtime.Manifest
   ).content_scripts![0];
-  const new_data: ContentScripts.RegisteredContentScriptOptions = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const new_data: any = {
     matches: ['<all_urls>'],
   };
   const rendered_stylesheets: { [key: string]: string } = {};
@@ -253,10 +249,12 @@ async function send_prefs(changes: { [s: string]: Storage.StorageChange }) {
       (new_data as any)[new_key] = (from_manifest as any)[key];
     }
   }
-  prev_scripts.push(await browser.contentScripts.register(new_data));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  prev_scripts.push(await (browser as any).contentScripts.register(new_data));
 
   // same for already loaded pages
-  const new_data_for_tabs: ExtensionTypes.InjectDetails = { code };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const new_data_for_tabs: any = { code };
   for (const key of Object.keys(new_data)) {
     if (['allFrames', 'matchAboutBlank', 'runAt'].indexOf(key) >= 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -279,7 +277,7 @@ on_prefs_change(send_prefs);
 if ('commands' in browser) {
   browser.commands.onCommand.addListener(async (name) => {
     try {
-      let current_tab: Tabs.Tab;
+      let current_tab: chrome.tabs.Tab;
       switch (name) {
         case 'global_toggle_hotkey':
           set_pref('enabled', !(await get_prefs('enabled')));
@@ -315,9 +313,11 @@ get_prefs('do_not_set_overrideDocumentColors_to_never').then((val) => {
   if (!val) {
     // The extension can barely do anything when overrideDocumentColors == always
     // or overrideDocumentColors == high-contrast-only is set and high contrast mode is in use
-    browser.browserSettings.overrideDocumentColors
-      .set({ value: 'never' })
-      .catch((error) => console.error(error));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (browser as any).browserSettings?.overrideDocumentColors
+      ?.set({ value: 'never' })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ?.catch((error: any) => console.error(error));
   }
 });
 
@@ -350,9 +350,8 @@ browser.webRequest.onHeadersReceived.addListener(
   ['blocking', 'responseHeaders'],
 );
 
-function is_probably_service_worker(
-  details: WebRequest.OnHeadersReceivedDetailsType,
-): boolean {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function is_probably_service_worker(details: any): boolean {
   if (!details.originUrl) {
     return false;
   }
@@ -369,7 +368,7 @@ function is_probably_service_worker(
 }
 
 function get_content_type(
-  headers?: WebRequest.HttpHeaders,
+  headers?: chrome.webRequest.HttpHeader[],
 ): string | undefined {
   return headers?.find((h) => h.name.toLowerCase() === 'content-type')?.value;
 }

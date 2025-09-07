@@ -1,7 +1,7 @@
-import type { Browser } from 'webextension-polyfill';
+// Using native Firefox WebExtensions API
 import type { MethodIndex, MethodMetadataWithExecutors } from '../common/types';
 
-declare const browser: Browser;
+declare const browser: typeof chrome;
 
 interface MessageHandlerDeps {
   getCurrentMethodPromise: () => Promise<MethodMetadataWithExecutors>;

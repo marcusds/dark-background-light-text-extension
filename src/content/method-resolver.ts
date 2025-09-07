@@ -1,4 +1,4 @@
-import type { Browser } from 'webextension-polyfill';
+// Using native Firefox WebExtensions API
 import type {
   AddonOptions,
   ConfiguredPages,
@@ -9,7 +9,7 @@ import type {
 import { methods } from '../methods/methods-with-executors';
 import { generate_urls } from '../common/generate-urls';
 
-declare const browser: Browser;
+declare const browser: typeof chrome;
 
 interface MethodResolverDeps {
   isIframe: boolean;

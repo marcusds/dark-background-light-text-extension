@@ -10,8 +10,8 @@
     set_pref,
   } from '../common/shared';
   import { methods } from '../methods/methods';
-  import type { Browser } from 'webextension-polyfill';
-  export let browser: Browser;
+  // Using native Firefox WebExtensions API
+  export let browser: typeof chrome;
 
   query_style().catch((error) => console.error(error));
 

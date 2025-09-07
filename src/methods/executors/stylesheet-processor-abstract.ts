@@ -1,8 +1,8 @@
-import type { Browser } from 'webextension-polyfill';
 import AwaitLock from 'await-lock';
 import { CallbackID } from '../../common/types';
 
-declare const browser: Browser;
+// Using native Firefox WebExtensions API
+declare const browser: typeof chrome;
 declare const { exportFunction }: typeof import('../../types/exportFunction');
 // ensure browser version of setTimeout
 declare const setTimeout: typeof window.setTimeout;

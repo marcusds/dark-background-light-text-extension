@@ -1,5 +1,5 @@
 import { describe, it, assert } from 'vitest';
-import type { WebRequest } from 'webextension-polyfill';
+// Using native Firefox WebExtensions API types
 import { readFileSync } from 'fs';
 import { modify_csp, modify_cors, version_lt } from '../src/background/lib';
 
@@ -57,9 +57,9 @@ describe('test modify CSP', () => {
 const cors_test_data: Array<
   [
     string,
-    WebRequest.HttpHeaders,
+    chrome.webRequest.HttpHeader[],
     { documentUrl?: string },
-    WebRequest.HttpHeaders,
+    chrome.webRequest.HttpHeader[],
   ]
 > = [
   [
@@ -134,10 +134,7 @@ const cors_test_data: Array<
 describe('test modify Access-Control-Allow-Origin', () => {
   cors_test_data.forEach(([name, src, details, expected]) => {
     it(name, () => {
-      assert.deepEqual(
-        modify_cors(src, details as WebRequest.OnHeadersReceivedDetailsType),
-        expected,
-      );
+      assert.deepEqual(modify_cors(src, details), expected);
     });
   });
 });

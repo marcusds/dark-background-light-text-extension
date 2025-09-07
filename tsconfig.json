@@ -13,7 +13,7 @@
     "noImplicitAny": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["webextension-polyfill"]
+    "types": ["chrome"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "test", "dist"]

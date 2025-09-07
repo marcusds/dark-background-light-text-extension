@@ -1,8 +1,8 @@
-import type { WebRequest } from 'webextension-polyfill';
+// Using native Firefox WebExtensions API types
 
 export function modify_csp(
-  header: WebRequest.HttpHeadersItemType,
-): WebRequest.HttpHeadersItemType {
+  header: chrome.webRequest.HttpHeader,
+): chrome.webRequest.HttpHeader {
   if (header.name.toLowerCase() === 'content-security-policy') {
     const new_values = header.value!.split(',').map((value) => {
       const directives: { [key: string]: string[] } = {};
@@ -61,8 +61,9 @@ export function modify_csp(
 }
 
 export function modify_cors(
-  headers: WebRequest.HttpHeaders,
-  details: WebRequest.OnHeadersReceivedDetailsType,
+  headers: chrome.webRequest.HttpHeader[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  details: any,
 ) {
   // Workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1393022
   if (details.documentUrl) {

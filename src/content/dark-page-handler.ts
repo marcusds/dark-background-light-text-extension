@@ -1,10 +1,10 @@
-import type { Browser, Storage } from 'webextension-polyfill';
+// Using native Firefox WebExtensions API
 import type { ConfiguredPages, ConfiguredTabs, MethodIndex, MethodMetadataWithExecutors } from '../common/types';
 import { generate_urls } from '../common/generate-urls';
 import { isPageDark } from '../utils/isPageDark';
 import { DISABLED_ID } from '../methods/methods';
 
-declare const browser: Browser;
+declare const browser: typeof chrome;
 
 interface DarkPageHandlerDeps {
   methodResolver: {
@@ -14,7 +14,7 @@ interface DarkPageHandlerDeps {
   tabIdPromise: Promise<unknown>;
   getMergedConfigured: () => ConfiguredPages;
   getConfiguredTabs: () => ConfiguredTabs;
-  doIt: (changes: { [s: string]: Storage.StorageChange }, forceMethod?: MethodIndex) => Promise<void>;
+  doIt: (changes: { [s: string]: chrome.storage.StorageChange }, forceMethod?: MethodIndex) => Promise<void>;
   disconnectAllObservers: () => void;
 }
 
