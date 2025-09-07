@@ -1,5 +1,5 @@
 import { describe, it, assert } from 'vitest';
-// Using native Firefox WebExtensions API types
+// Firefox WebExtensions API - using Chrome types as base
 import { readFileSync } from 'fs';
 import { modify_csp, modify_cors, version_lt } from '../src/background/lib';
 
@@ -134,7 +134,7 @@ const cors_test_data: Array<
 describe('test modify Access-Control-Allow-Origin', () => {
   cors_test_data.forEach(([name, src, details, expected]) => {
     it(name, () => {
-      assert.deepEqual(modify_cors(src, details), expected);
+      assert.deepEqual(modify_cors(src, details as any), expected);
     });
   });
 });

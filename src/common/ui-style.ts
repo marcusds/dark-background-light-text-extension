@@ -1,4 +1,4 @@
-// Using native Firefox WebExtensions API
+// Firefox WebExtensions API - using Chrome types as base
 declare const browser: typeof chrome;
 
 export async function query_style() {

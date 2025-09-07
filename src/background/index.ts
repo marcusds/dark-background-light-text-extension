@@ -20,6 +20,7 @@ import * as base_style from '../methods/stylesheets/base';
 import { method_change } from '../methods/setMethod';
 import { stringToRgba } from '../utils/hexToRgb';
 
+// Firefox WebExtensions API - using Chrome types as base, Firefox-specific features cast as any
 declare const browser: typeof chrome;
 
 const platform_info: Promise<chrome.runtime.PlatformInfo> =
@@ -100,7 +101,6 @@ browser.runtime.onMessage.addListener(async (message: any, sender: any) => {
           runAt: 'document_start',
         });
       case CallbackID.REMOVE_CSS:
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return await (browser.tabs as any).removeCSS(sender.tab?.id, {
           code: message.code,
           frameId: sender.frameId,
@@ -145,7 +145,7 @@ browser.runtime.onMessage.addListener(async (message: any, sender: any) => {
         }
         break;
       case 'is_commands_update_available':
-        return 'commands' in browser && 'update' in browser.commands;
+        return 'commands' in browser && browser.commands && 'update' in browser.commands;
       case 'query_parent_method_number':
         if (sender.frameId === 0) {
           console.error(
@@ -187,8 +187,7 @@ browser.runtime.onMessage.addListener(async (message: any, sender: any) => {
   }
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prev_scripts: any[] = [];
+const prev_scripts: Array<{ unregister: () => Promise<void> }> = [];
 async function send_prefs(changes: {
   [s: string]: chrome.storage.StorageChange;
 }) {
@@ -197,7 +196,6 @@ async function send_prefs(changes: {
   const from_manifest = (
     browser.runtime.getManifest() as chrome.runtime.Manifest
   ).content_scripts![0];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const new_data: any = {
     matches: ['<all_urls>'],
   };
@@ -249,15 +247,12 @@ async function send_prefs(changes: {
       (new_data as any)[new_key] = (from_manifest as any)[key];
     }
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prev_scripts.push(await (browser as any).contentScripts.register(new_data));
 
   // same for already loaded pages
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const new_data_for_tabs: any = { code };
   for (const key of Object.keys(new_data)) {
     if (['allFrames', 'matchAboutBlank', 'runAt'].indexOf(key) >= 0) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (new_data_for_tabs as any)[key] = (new_data as any)[key];
     }
   }
@@ -274,7 +269,7 @@ async function send_prefs(changes: {
 send_prefs({});
 on_prefs_change(send_prefs);
 
-if ('commands' in browser) {
+if ('commands' in browser && browser.commands) {
   browser.commands.onCommand.addListener(async (name) => {
     try {
       let current_tab: chrome.tabs.Tab;
@@ -313,10 +308,8 @@ get_prefs('do_not_set_overrideDocumentColors_to_never').then((val) => {
   if (!val) {
     // The extension can barely do anything when overrideDocumentColors == always
     // or overrideDocumentColors == high-contrast-only is set and high contrast mode is in use
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (browser as any).browserSettings?.overrideDocumentColors
       ?.set({ value: 'never' })
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ?.catch((error: any) => console.error(error));
   }
 });
@@ -350,8 +343,9 @@ browser.webRequest.onHeadersReceived.addListener(
   ['blocking', 'responseHeaders'],
 );
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function is_probably_service_worker(details: any): boolean {
+function is_probably_service_worker(
+  details: any, // Firefox WebRequest details with additional properties
+): boolean {
   if (!details.originUrl) {
     return false;
   }

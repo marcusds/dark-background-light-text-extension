@@ -1,4 +1,5 @@
-// Using native Firefox WebExtensions API
+// Firefox WebExtensions API - using Chrome types as base
+declare const browser: typeof chrome;
 import {
   get_merged_configured_common,
   get_prefs,
@@ -11,7 +12,6 @@ import type { ConfiguredPages, MethodIndex } from '../common/types';
 import '../common/ui-style';
 import { CURRENT_TAB_LABEL } from '../consts';
 
-declare const browser: typeof chrome;
 
 (async () => {
   function get_merged_configured(): Promise<ConfiguredPages> {
@@ -82,7 +82,6 @@ declare const browser: typeof chrome;
     });
   } catch {
     // Using empty catch block as the error value is not needed
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const browserInfo = await (browser.runtime as any).getBrowserInfo();
     message = `Modification of this page is not available due to ${browserInfo.name} restrictions`;
   }

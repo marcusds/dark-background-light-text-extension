@@ -1,6 +1,6 @@
 import App from './App.svelte';
 import { mount } from 'svelte';
-// Using native Firefox WebExtensions API
+// Firefox WebExtensions API - using Chrome types as base
 declare const browser: typeof chrome;
 
 const app = mount(App, {

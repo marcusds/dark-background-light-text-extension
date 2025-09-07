@@ -1,10 +1,10 @@
-// Using native Firefox WebExtensions API
+// Firefox WebExtensions API - using Chrome types as base
+declare const browser: typeof chrome;
 import type { ConfiguredPages, ConfiguredTabs, MethodIndex, MethodMetadataWithExecutors } from '../common/types';
 import { generate_urls } from '../common/generate-urls';
 import { isPageDark } from '../utils/isPageDark';
 import { DISABLED_ID } from '../methods/methods';
 
-declare const browser: typeof chrome;
 
 interface DarkPageHandlerDeps {
   methodResolver: {

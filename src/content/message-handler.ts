@@ -1,7 +1,7 @@
-// Using native Firefox WebExtensions API
+// Firefox WebExtensions API - using Chrome types as base
+declare const browser: typeof chrome;
 import type { MethodIndex, MethodMetadataWithExecutors } from '../common/types';
 
-declare const browser: typeof chrome;
 
 interface MessageHandlerDeps {
   getCurrentMethodPromise: () => Promise<MethodMetadataWithExecutors>;

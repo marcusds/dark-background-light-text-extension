@@ -1,4 +1,4 @@
-// Using native Firefox WebExtensions API types
+// Firefox WebExtensions API - using Chrome types as base
 
 export function modify_csp(
   header: chrome.webRequest.HttpHeader,
@@ -62,8 +62,7 @@ export function modify_csp(
 
 export function modify_cors(
   headers: chrome.webRequest.HttpHeader[],
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  details: any,
+  details: any, // Firefox WebRequest details with documentUrl property
 ) {
   // Workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1393022
   if (details.documentUrl) {

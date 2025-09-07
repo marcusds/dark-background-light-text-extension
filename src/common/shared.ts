@@ -1,4 +1,5 @@
-// Using native Firefox WebExtensions API types
+// Firefox WebExtensions API - using Chrome types as base
+declare const browser: typeof chrome;
 import type {
   Preferences,
   PrefsType,
@@ -11,7 +12,6 @@ import type {
 } from './types';
 import { methods } from '../methods/methods';
 
-declare const browser: typeof chrome;
 
 export const preferences: Preferences = [
   {

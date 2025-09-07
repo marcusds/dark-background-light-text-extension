@@ -1,4 +1,5 @@
-// Using native Firefox WebExtensions API types
+// Firefox WebExtensions API - using Chrome types as base
+declare const browser: typeof chrome;
 import type {
   AddonOptions,
   ConfiguredPages,
@@ -13,7 +14,6 @@ import { createDarkPageHandler } from './dark-page-handler';
 import { createDomObserver } from './dom-observer';
 import { createMessageHandler } from './message-handler';
 
-declare const browser: typeof chrome;
 
 const tabId_promise = browser.runtime.sendMessage({ action: 'query_tabId' });
 const is_iframe = detectIframe();

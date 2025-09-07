@@ -10,7 +10,7 @@
     set_pref,
   } from '../common/shared';
   import { methods } from '../methods/methods';
-  // Using native Firefox WebExtensions API
+  // Firefox WebExtensions API - using Chrome types as base
   export let browser: typeof chrome;
 
   query_style().catch((error) => console.error(error));
