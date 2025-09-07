@@ -7,21 +7,16 @@ import type {
   MethodIndex,
   MethodMetadataWithExecutors,
 } from '../common/types';
-import { methods } from '../methods/methods-with-executors';
-import { generate_urls } from '../common/generate-urls';
-import { darkDatas, isPageDark } from '../utils/isPageDark';
-import { DISABLED_ID } from '../methods/methods';
+import { detectIframe } from './iframe-detector';
+import { createMethodResolver } from './method-resolver';
+import { createDarkPageHandler } from './dark-page-handler';
+import { createDomObserver } from './dom-observer';
+import { createMessageHandler } from './message-handler';
 
 declare const browser: Browser;
 
 const tabId_promise = browser.runtime.sendMessage({ action: 'query_tabId' });
-let is_iframe: boolean;
-try {
-  is_iframe = window.self !== window.top;
-} catch {
-  // Using empty catch block as the error value is not needed
-  is_iframe = true;
-}
+const is_iframe = detectIframe();
 
 declare global {
   interface Window {
@@ -46,98 +41,14 @@ if (typeof window.content_script_state === 'undefined') {
   window.content_script_state = 'normal_order';
 }
 
-// Store observers so we can disconnect them later
-const observers: MutationObserver[] = [];
-let disconnected = false;
-let timeout: number | undefined;
-const disconnectAll = () => {
-  if (timeout) clearTimeout(timeout);
-  if (!disconnected) {
-    observers.forEach((observer) => observer.disconnect());
-    disconnected = true;
-  }
-};
-
-async function is_default_method(url: string): Promise<boolean> {
-  if (window.prefs.enabled) {
-    if (is_iframe) {
-      const parent_method_number = await browser.runtime.sendMessage({
-        action: 'query_parent_method_number',
-      });
-      if (methods[parent_method_number as number].affects_iframes) {
-        return false;
-      } else if (url === 'about:blank' || url === 'about:srcdoc') {
-        return false;
-      }
-    }
-    // TODO: get rid of await here, https://bugzilla.mozilla.org/show_bug.cgi?id=1574713
-    let tab_configuration: MethodIndex | boolean = false;
-    if (Object.keys(window.configured_tabs).length > 0) {
-      const tabId = await tabId_promise;
-      tab_configuration =
-        (tabId as number) in window.configured_tabs
-          ? window.configured_tabs[tabId as number]
-          : false;
-    }
-
-    if (tab_configuration !== false) {
-      return true;
-    }
-
-    const configured_urls = Object.keys(window.merged_configured);
-    for (const gen_url of generate_urls(url)) {
-      if (configured_urls.includes(gen_url)) {
-        return false;
-      }
-    }
-    return true;
-  } else {
-    return false;
-  }
-}
-
-async function get_method_for_url(
-  url: string,
-  forceMethod?: MethodIndex,
-): Promise<MethodMetadataWithExecutors> {
-  if (forceMethod !== undefined) {
-    return methods[forceMethod];
-  }
-  if (window.prefs.enabled) {
-    if (is_iframe) {
-      const parent_method_number = await browser.runtime.sendMessage({
-        action: 'query_parent_method_number',
-      });
-      if (methods[parent_method_number as number].affects_iframes) {
-        return methods[0];
-      } else if (url === 'about:blank' || url === 'about:srcdoc') {
-        return methods[parent_method_number as number];
-      }
-    }
-    // TODO: get rid of await here, https://bugzilla.mozilla.org/show_bug.cgi?id=1574713
-    let tab_configuration: MethodIndex | boolean = false;
-    if (Object.keys(window.configured_tabs).length > 0) {
-      const tabId = await tabId_promise;
-      tab_configuration =
-        (tabId as number) in window.configured_tabs
-          ? window.configured_tabs[tabId as number]
-          : false;
-    }
-    if (tab_configuration !== false) {
-      return methods[tab_configuration as unknown as number];
-    }
-
-    const configured_urls = Object.keys(window.merged_configured);
-    for (const gen_url of generate_urls(url)) {
-      if (configured_urls.includes(gen_url)) {
-        return methods[window.merged_configured[gen_url]];
-      }
-    }
-    return methods[window.prefs.default_method];
-  } else {
-    return methods[0];
-  }
-}
+// Initialize modular components
+const methodResolver = createMethodResolver({
+  isIframe: is_iframe,
+  tabIdPromise: tabId_promise,
+  getPrefs: () => window.prefs,
+  getMergedConfigured: () => window.merged_configured,
+  getConfiguredTabs: () => window.configured_tabs,
+});
 
 let current_method: MethodMetadataWithExecutors;
 let resolve_current_method_promise:
@@ -150,85 +61,24 @@ let current_method_promise: Promise<MethodMetadataWithExecutors> = new Promise(
 );
 let current_method_executor: MethodExecutor | undefined;
 
-// Move dark mode check and persistence to its own function and listener
-async function checkAndPersistDarkPage() {
-  const isDefaultMethod =
-    (await is_default_method(window.document.documentURI))
-    || (await is_default_method(window.location.hostname));
-  if (!isDefaultMethod) return;
-  const method = await get_method_for_url(window.document.documentURI);
-  const sheets = document.querySelectorAll('.dblt-ykjmwcnxmi');
-  for (const sheet of sheets) {
-    sheet?.setAttribute('media', '(not all)');
-  }
-  //await window.do_it({}, DISABLED_ID);
-  if (isPageDark(method)) {
-    disconnectAll();
-    for (const sheet of sheets) {
-      sheet?.setAttribute('media', '');
-    }
-    const urlKey = generate_urls(window.document.documentURI)[0];
-    if (
-      !window.merged_configured[urlKey]
-      || window.merged_configured[urlKey] !== DISABLED_ID
-    ) {
-      const tabId = await tabId_promise;
-      const url = window.configured_tabs?.[tabId as number];
-      await browser.runtime.sendMessage({
-        action: 'set_configured_page',
-        key: url,
-        value: DISABLED_ID,
-      });
-      window.do_it({}, DISABLED_ID);
-    }
-  } else {
-    sheets.forEach((link) => {
-      link.setAttribute('media', '');
-    });
-  }
-}
+// Initialize dark page handler and DOM observer
+const darkPageHandler = createDarkPageHandler({
+  methodResolver,
+  tabIdPromise: tabId_promise,
+  getMergedConfigured: () => window.merged_configured,
+  getConfiguredTabs: () => window.configured_tabs,
+  doIt: (changes, forceMethod) => window.do_it(changes, forceMethod),
+  disconnectAllObservers: () => domObserver.disconnectAll(),
+});
 
-// Listen for classList changes on <body> and <html> to re-check dark mode
-function observeClassListChanges() {
-  // Remove observers after 45s regardless
-  timeout = setTimeout(disconnectAll, 45000);
-  const callback = async (mutationsList: MutationRecord[]) => {
-    for (const mutation of mutationsList) {
-      if (
-        mutation.type === 'attributes'
-        && (mutation.attributeName === 'class'
-          || mutation.attributeName?.startsWith('data-'))
-      ) {
-        checkAndPersistDarkPage();
-        const method = await get_method_for_url(window.document.documentURI);
-        if (isPageDark(method)) {
-          disconnectAll();
-        }
-        break;
-      }
-    }
-  };
-  const config = {
-    attributes: true,
-    attributeFilter: ['class', ...darkDatas.map((value) => `data-${value}`)],
-  };
-  const body = document.body;
-  const html = document.documentElement;
-  if (body) {
-    const observer = new MutationObserver(callback);
-    observer.observe(body, config);
-    observers.push(observer);
-  }
-  if (html) {
-    const observer = new MutationObserver(callback);
-    observer.observe(html, config);
-    observers.push(observer);
-  }
-}
+const domObserver = createDomObserver({
+  methodResolver,
+  darkPageHandler,
+});
 
 document.addEventListener('DOMContentLoaded', () => {
-  checkAndPersistDarkPage();
-  observeClassListChanges();
+  darkPageHandler.checkAndPersistDarkPage();
+  domObserver.observeClassListChanges();
 });
 
 window.do_it = async function do_it(
@@ -238,7 +88,7 @@ window.do_it = async function do_it(
   forceMethod?: MethodIndex,
 ): Promise<void> {
   try {
-    const new_method = await get_method_for_url(
+    const new_method = await methodResolver.getMethodForUrl(
       window.document.documentURI,
       forceMethod,
     );
@@ -293,25 +143,11 @@ window.do_it = async function do_it(
   }
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-browser.runtime.onMessage.addListener(async (message: any) => {
-  try {
-    if (!message?.action) {
-      console.error('Invalid message format:', message);
-      return undefined;
-    }
-
-    if (message.action === 'get_method_number') {
-      return (await current_method_promise).number;
-    }
-
-    console.error('Unknown message action:', message.action);
-    return undefined;
-  } catch (error) {
-    console.error('Error handling message:', error);
-    return undefined;
-  }
+// Initialize message handler
+const messageHandler = createMessageHandler({
+  getCurrentMethodPromise: () => current_method_promise,
 });
+messageHandler.setupMessageListener();
 
 if (window.content_script_state === 'registered_content_script_first') {
   /* #226 part 1 workaround */
