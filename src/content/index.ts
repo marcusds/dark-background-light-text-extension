@@ -46,6 +46,18 @@ if (typeof window.content_script_state === 'undefined') {
   window.content_script_state = 'normal_order';
 }
 
+// Store observers so we can disconnect them later
+const observers: MutationObserver[] = [];
+let disconnected = false;
+let timeout: number | undefined;
+const disconnectAll = () => {
+  if (timeout) clearTimeout(timeout);
+  if (!disconnected) {
+    observers.forEach((observer) => observer.disconnect());
+    disconnected = true;
+  }
+};
+
 async function is_default_method(url: string): Promise<boolean> {
   if (window.prefs.enabled) {
     if (is_iframe) {
@@ -63,7 +75,9 @@ async function is_default_method(url: string): Promise<boolean> {
     if (Object.keys(window.configured_tabs).length > 0) {
       const tabId = await tabId_promise;
       tab_configuration =
-        (tabId as number) in window.configured_tabs ? window.configured_tabs[tabId as number] : false;
+        (tabId as number) in window.configured_tabs
+          ? window.configured_tabs[tabId as number]
+          : false;
     }
 
     if (tab_configuration !== false) {
@@ -105,7 +119,9 @@ async function get_method_for_url(
     if (Object.keys(window.configured_tabs).length > 0) {
       const tabId = await tabId_promise;
       tab_configuration =
-        (tabId as number) in window.configured_tabs ? window.configured_tabs[tabId as number] : false;
+        (tabId as number) in window.configured_tabs
+          ? window.configured_tabs[tabId as number]
+          : false;
     }
     if (tab_configuration !== false) {
       return methods[tab_configuration as unknown as number];
@@ -141,7 +157,16 @@ async function checkAndPersistDarkPage() {
     || (await is_default_method(window.location.hostname));
   if (!isDefaultMethod) return;
   const method = await get_method_for_url(window.document.documentURI);
+  const sheets = document.querySelectorAll('.dblt-ykjmwcnxmi');
+  for (const sheet of sheets) {
+    sheet?.setAttribute('media', '(not all)');
+  }
+  //await window.do_it({}, DISABLED_ID);
   if (isPageDark(method)) {
+    disconnectAll();
+    for (const sheet of sheets) {
+      sheet?.setAttribute('media', '');
+    }
     const urlKey = generate_urls(window.document.documentURI)[0];
     if (
       !window.merged_configured[urlKey]
@@ -156,23 +181,17 @@ async function checkAndPersistDarkPage() {
       });
       window.do_it({}, DISABLED_ID);
     }
+  } else {
+    sheets.forEach((link) => {
+      link.setAttribute('media', '');
+    });
   }
 }
 
 // Listen for classList changes on <body> and <html> to re-check dark mode
 function observeClassListChanges() {
-  // Store observers so we can disconnect them later
-  const observers: MutationObserver[] = [];
-  let disconnected = false;
-  const disconnectAll = () => {
-    clearTimeout(timeout);
-    if (!disconnected) {
-      observers.forEach((observer) => observer.disconnect());
-      disconnected = true;
-    }
-  };
   // Remove observers after 45s regardless
-  const timeout = setTimeout(disconnectAll, 45000);
+  timeout = setTimeout(disconnectAll, 45000);
   const callback = async (mutationsList: MutationRecord[]) => {
     for (const mutation of mutationsList) {
       if (

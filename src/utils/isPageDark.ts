@@ -7,20 +7,24 @@ function checkByElement(invertCheck = false) {
   if (!testDiv) {
     testDiv = document.createElement('div');
     testDiv.id = id;
-    testDiv.style.width = '0';
-    testDiv.style.height = '0';
+    testDiv.style.width = '0px';
+    testDiv.style.height = '0px';
+    testDiv.style.fontSize = '0';
     testDiv.style.overflow = 'hidden';
-    testDiv.innerText = 'T';
+    testDiv.innerText = '.';
     document.body.appendChild(testDiv);
   }
   const computedColor = window.getComputedStyle(testDiv).color;
   const match = computedColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+
+  testDiv.remove();
+
   if (match) {
     const r = parseInt(match[1], 10);
     const g = parseInt(match[2], 10);
     const b = parseInt(match[3], 10);
     const d = darkness(r, g, b);
-    if ((!invertCheck && d < 0.4) || (invertCheck && d > 0.25)) {
+    if ((invertCheck && d >= 0.7) || (!invertCheck && d <= 0.35)) {
       return true;
     }
   }
