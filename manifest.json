@@ -7,7 +7,11 @@
       "id": "SimpleAutoDarkMode@public",
       "data_collection_permissions": {
         "required": ["none"]
-      }
+      },
+      "strict_min_version": "109.0"
+    },
+    "gecko_android": {
+      "strict_min_version": "109.0"
     }
   },
   "description": "Attempts to be light and high performance specifically targeting Firefox for Android. Automatic dark mode while attempting to respect sites that are already dark.",
