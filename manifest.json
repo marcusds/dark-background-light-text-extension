@@ -41,7 +41,8 @@
     },
     "tab_toggle_hotkey": {
       "suggested_key": {
-        "default": "Ctrl+Alt+D"
+        "default": "Alt+Shift+D",
+        "mac": "Command+Shift+D"
       },
       "description": "Toggle enabled for current tab"
     }
