@@ -65,5 +65,8 @@
       "prettier --write",
       "eslint --fix"
     ]
-  }
+  },
+  "browserslist": [
+    "last 3 Firefox versions"
+  ]
 }
