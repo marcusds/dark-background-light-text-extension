@@ -39,7 +39,8 @@
   "commands": {
     "global_toggle_hotkey": {
       "suggested_key": {
-        "default": "F2"
+        "default": "Alt+Shift+E",
+        "mac": "Command+Shift+E"
       },
       "description": "Toggle enabled globally"
     },
