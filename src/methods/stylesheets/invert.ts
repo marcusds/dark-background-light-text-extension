@@ -31,7 +31,7 @@ export function render({}: RenderOptions) {
   div#viewer.pdfViewer div.page {
     filter: invert(1) hue-rotate(180deg) !important;
   }
-  /* #28 */
+
   :fullscreen video,
   video:fullscreen {
     filter: none !important;

@@ -145,7 +145,11 @@ browser.runtime.onMessage.addListener(async (message: any, sender: any) => {
         }
         break;
       case 'is_commands_update_available':
-        return 'commands' in browser && browser.commands && 'update' in browser.commands;
+        return (
+          'commands' in browser
+          && browser.commands
+          && 'update' in browser.commands
+        );
       case 'query_parent_method_number':
         if (sender.frameId === 0) {
           console.error(
@@ -196,7 +200,7 @@ async function send_prefs(changes: {
   const from_manifest = (
     browser.runtime.getManifest() as chrome.runtime.Manifest
   ).content_scripts![0];
-  const new_data: any = {
+  const new_data: { matches: string[]; js?: { code: string }[] } = {
     matches: ['<all_urls>'],
   };
   const rendered_stylesheets: { [key: string]: string } = {};
