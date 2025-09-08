@@ -20,7 +20,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.4",
     "@types/chrome": "^0.1.6",
-    "@types/stylelint": "^13.13.3",
+    "@types/stylelint": "^14.0.0",
     "@typescript-eslint/eslint-plugin": "^8.42.0",
     "@typescript-eslint/parser": "^8.42.0",
     "@vitest/coverage-v8": "^3.2.4",
