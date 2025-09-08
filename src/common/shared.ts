@@ -1,5 +1,3 @@
-// Firefox WebExtensions API - using Chrome types as base
-declare const browser: typeof chrome;
 import type {
   Preferences,
   PrefsType,
@@ -11,7 +9,6 @@ import type {
   ConfiguredPagesPreference,
 } from './types';
 import { methods } from '../methods/methods';
-
 
 export const preferences: Preferences = [
   {
@@ -120,7 +117,9 @@ export async function get_prefs(
     throw new Error('get_prefs parameter has unsupported type');
   }
   const ret_data = await browser.storage.local.get(query);
-  return is_single ? ret_data[prefs as string] as PrefsType : ret_data as PrefsWithValues;
+  return is_single
+    ? (ret_data[prefs as string] as PrefsType)
+    : (ret_data as PrefsWithValues);
 }
 
 export function set_pref(pref: string, value: PrefsType): Promise<void> {
@@ -132,7 +131,7 @@ export function set_pref(pref: string, value: PrefsType): Promise<void> {
 }
 
 export function on_prefs_change(
-  callback: (changes: { [s: string]: chrome.storage.StorageChange }) => void,
+  callback: (changes: { [s: string]: browser.storage.StorageChange }) => void,
 ) {
   browser.storage.onChanged.addListener((changes, areaName) => {
     if (areaName !== 'local') {

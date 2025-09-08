@@ -1,8 +1,6 @@
 import AwaitLock from 'await-lock';
 import { CallbackID } from '../../common/types';
 
-// Firefox WebExtensions API - using Chrome types as base
-declare const browser: typeof chrome;
 declare const { exportFunction }: typeof import('../../types/exportFunction');
 // ensure browser version of setTimeout
 declare const setTimeout: typeof window.setTimeout;

@@ -20,10 +20,7 @@ import * as base_style from '../methods/stylesheets/base';
 import { method_change } from '../methods/setMethod';
 import { stringToRgba } from '../utils/hexToRgb';
 
-// Firefox WebExtensions API - using Chrome types as base, Firefox-specific features cast as any
-declare const browser: typeof chrome;
-
-const platform_info: Promise<chrome.runtime.PlatformInfo> =
+const platform_info: Promise<browser.runtime.PlatformInfo> =
   'getPlatformInfo' in browser.runtime
     ? browser.runtime.getPlatformInfo()
     : Promise.reject();
@@ -101,7 +98,7 @@ browser.runtime.onMessage.addListener(async (message: any, sender: any) => {
           runAt: 'document_start',
         });
       case CallbackID.REMOVE_CSS:
-        return await (browser.tabs as any).removeCSS(sender.tab?.id, {
+        return await browser.tabs.removeCSS(sender.tab?.id, {
           code: message.code,
           frameId: sender.frameId,
           cssOrigin: 'user',
@@ -191,16 +188,16 @@ browser.runtime.onMessage.addListener(async (message: any, sender: any) => {
   }
 });
 
-const prev_scripts: Array<{ unregister: () => Promise<void> }> = [];
+const prev_scripts: browser.contentScripts.RegisteredContentScript[] = [];
 async function send_prefs(changes: {
-  [s: string]: chrome.storage.StorageChange;
+  [s: string]: browser.storage.StorageChange;
 }) {
   prev_scripts.forEach((cs) => cs.unregister());
   prev_scripts.length = 0;
   const from_manifest = (
-    browser.runtime.getManifest() as chrome.runtime.Manifest
+    browser.runtime.getManifest() as browser._manifest.WebExtensionManifest
   ).content_scripts![0];
-  const new_data: { matches: string[]; js?: { code: string }[] } = {
+  const new_data: browser.contentScripts.RegisteredContentScriptOptions = {
     matches: ['<all_urls>'],
   };
   const rendered_stylesheets: { [key: string]: string } = {};
@@ -251,19 +248,24 @@ async function send_prefs(changes: {
       (new_data as any)[new_key] = (from_manifest as any)[key];
     }
   }
-  prev_scripts.push(await (browser as any).contentScripts.register(new_data));
+  prev_scripts.push(await browser.contentScripts.register(new_data));
 
   // same for already loaded pages
-  const new_data_for_tabs: any = { code };
-  for (const key of Object.keys(new_data)) {
+  type AllowedKeys = keyof Pick<
+    browser.contentScripts.RegisteredContentScriptOptions,
+    'allFrames' | 'matchAboutBlank' | 'runAt'
+  >;
+
+  const new_data_for_tabs: browser.extensionTypes.InjectDetails = { code };
+  for (const key of Object.keys(new_data) as AllowedKeys[]) {
     if (['allFrames', 'matchAboutBlank', 'runAt'].indexOf(key) >= 0) {
-      (new_data_for_tabs as any)[key] = (new_data as any)[key];
+      new_data_for_tabs[key] = new_data[key as never];
     }
   }
   const tabs = await browser.tabs.query({});
   const scriptPromises = tabs.map((tab) =>
     browser.tabs
-      .executeScript(tab.id, new_data_for_tabs)
+      .executeScript(tab.id!, new_data_for_tabs)
       .catch((error) =>
         console.error(`Failed to inject script into tab ${tab.id}:`, error),
       ),
@@ -276,7 +278,7 @@ on_prefs_change(send_prefs);
 if ('commands' in browser && browser.commands) {
   browser.commands.onCommand.addListener(async (name) => {
     try {
-      let current_tab: chrome.tabs.Tab;
+      let current_tab: browser.tabs.Tab;
       switch (name) {
         case 'global_toggle_hotkey':
           set_pref('enabled', !(await get_prefs('enabled')));
@@ -312,9 +314,9 @@ get_prefs('do_not_set_overrideDocumentColors_to_never').then((val) => {
   if (!val) {
     // The extension can barely do anything when overrideDocumentColors == always
     // or overrideDocumentColors == high-contrast-only is set and high contrast mode is in use
-    (browser as any).browserSettings?.overrideDocumentColors
+    browser.browserSettings?.overrideDocumentColors
       ?.set({ value: 'never' })
-      ?.catch((error: any) => console.error(error));
+      ?.catch((error) => console.error(error));
   }
 });
 
@@ -348,7 +350,7 @@ browser.webRequest.onHeadersReceived.addListener(
 );
 
 function is_probably_service_worker(
-  details: any, // Firefox WebRequest details with additional properties
+  details: browser.webRequest._OnHeadersReceivedDetails,
 ): boolean {
   if (!details.originUrl) {
     return false;
@@ -366,13 +368,14 @@ function is_probably_service_worker(
 }
 
 function get_content_type(
-  headers?: chrome.webRequest.HttpHeader[],
+  headers?: browser.webRequest.HttpHeaders,
 ): string | undefined {
   return headers?.find((h) => h.name.toLowerCase() === 'content-type')?.value;
 }
 
 browser.webRequest.onHeadersReceived.addListener(
   (details) => {
+    alert('onHeadersReceived for CORS');
     if (
       details.type === 'stylesheet'
       || (is_probably_service_worker(details)

@@ -57,9 +57,9 @@ describe('test modify CSP', () => {
 const cors_test_data: Array<
   [
     string,
-    chrome.webRequest.HttpHeader[],
+    browser.webRequest.HttpHeaders,
     { documentUrl?: string },
-    chrome.webRequest.HttpHeader[],
+    browser.webRequest.HttpHeaders,
   ]
 > = [
   [
@@ -134,7 +134,7 @@ const cors_test_data: Array<
 describe('test modify Access-Control-Allow-Origin', () => {
   cors_test_data.forEach(([name, src, details, expected]) => {
     it(name, () => {
-      assert.deepEqual(modify_cors(src, details as any), expected);
+      assert.deepEqual(modify_cors(src, details as never), expected);
     });
   });
 });

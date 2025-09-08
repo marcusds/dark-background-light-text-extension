@@ -1,6 +1,3 @@
-// Firefox WebExtensions API - using Chrome types as base
-declare const browser: typeof chrome;
-
 export async function query_style() {
   const css_promise = await browser.runtime.sendMessage({
     action: 'query_base_style',

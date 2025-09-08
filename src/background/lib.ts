@@ -1,8 +1,8 @@
 // Firefox WebExtensions API - using Chrome types as base
 
 export function modify_csp(
-  header: chrome.webRequest.HttpHeader,
-): chrome.webRequest.HttpHeader {
+  header: browser.webRequest.HttpHeaders[number],
+): browser.webRequest.HttpHeaders[number] {
   if (header.name.toLowerCase() === 'content-security-policy') {
     const new_values = header.value!.split(',').map((value) => {
       const directives: { [key: string]: string[] } = {};
@@ -61,9 +61,10 @@ export function modify_csp(
 }
 
 export function modify_cors(
-  headers: chrome.webRequest.HttpHeader[],
-  details: any, // Firefox WebRequest details with documentUrl property
+  headers: browser.webRequest.HttpHeaders,
+  details: browser.webRequest._OnHeadersReceivedDetails,
 ) {
+  alert('modify_cors');
   // Workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1393022
   if (details.documentUrl) {
     const url_obj = new URL(details.documentUrl);

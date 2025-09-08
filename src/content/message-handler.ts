@@ -1,7 +1,4 @@
-// Firefox WebExtensions API - using Chrome types as base
-declare const browser: typeof chrome;
 import type { MethodIndex, MethodMetadataWithExecutors } from '../common/types';
-
 
 interface MessageHandlerDeps {
   getCurrentMethodPromise: () => Promise<MethodMetadataWithExecutors>;
@@ -10,7 +7,9 @@ interface MessageHandlerDeps {
 export function createMessageHandler(deps: MessageHandlerDeps) {
   const { getCurrentMethodPromise } = deps;
 
-  async function handleMessage(message: unknown): Promise<MethodIndex | undefined> {
+  async function handleMessage(
+    message: unknown,
+  ): Promise<MethodIndex | undefined> {
     const msg = message as { action?: string };
     try {
       if (!msg?.action) {

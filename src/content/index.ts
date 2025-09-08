@@ -1,5 +1,3 @@
-// Firefox WebExtensions API - using Chrome types as base
-declare const browser: typeof chrome;
 import type {
   AddonOptions,
   ConfiguredPages,
@@ -13,7 +11,6 @@ import { createMethodResolver } from './method-resolver';
 import { createDarkPageHandler } from './dark-page-handler';
 import { createDomObserver } from './dom-observer';
 import { createMessageHandler } from './message-handler';
-
 
 const tabId_promise = browser.runtime.sendMessage({ action: 'query_tabId' });
 const is_iframe = detectIframe();
@@ -30,7 +27,7 @@ declare global {
     configured_tabs: ConfiguredTabs;
     rendered_stylesheets: { [key: string]: string };
     do_it: (
-      changes: { [s: string]: chrome.storage.StorageChange },
+      changes: { [s: string]: browser.storage.StorageChange },
       forceMethod?: MethodIndex,
     ) => Promise<void>;
   }
@@ -83,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.do_it = async function do_it(
   changes: {
-    [s: string]: chrome.storage.StorageChange;
+    [s: string]: browser.storage.StorageChange;
   },
   forceMethod?: MethodIndex,
 ): Promise<void> {

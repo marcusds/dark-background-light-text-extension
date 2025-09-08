@@ -1,36 +1,53 @@
-// Firefox WebExtensions API - using Chrome types as base
-declare const browser: typeof chrome;
-import type { ConfiguredPages, ConfiguredTabs, MethodIndex, MethodMetadataWithExecutors } from '../common/types';
+import type {
+  ConfiguredPages,
+  ConfiguredTabs,
+  MethodIndex,
+  MethodMetadataWithExecutors,
+} from '../common/types';
 import { generate_urls } from '../common/generate-urls';
 import { isPageDark } from '../utils/isPageDark';
 import { DISABLED_ID } from '../methods/methods';
 
-
 interface DarkPageHandlerDeps {
   methodResolver: {
     isDefaultMethod: (url: string) => Promise<boolean>;
-    getMethodForUrl: (url: string, forceMethod?: MethodIndex) => Promise<MethodMetadataWithExecutors>;
+    getMethodForUrl: (
+      url: string,
+      forceMethod?: MethodIndex,
+    ) => Promise<MethodMetadataWithExecutors>;
   };
   tabIdPromise: Promise<unknown>;
   getMergedConfigured: () => ConfiguredPages;
   getConfiguredTabs: () => ConfiguredTabs;
-  doIt: (changes: { [s: string]: chrome.storage.StorageChange }, forceMethod?: MethodIndex) => Promise<void>;
+  doIt: (
+    changes: { [s: string]: browser.storage.StorageChange },
+    forceMethod?: MethodIndex,
+  ) => Promise<void>;
   disconnectAllObservers: () => void;
 }
 
 export function createDarkPageHandler(deps: DarkPageHandlerDeps) {
-  const { methodResolver, tabIdPromise, getMergedConfigured, getConfiguredTabs, doIt, disconnectAllObservers } = deps;
+  const {
+    methodResolver,
+    tabIdPromise,
+    getMergedConfigured,
+    getConfiguredTabs,
+    doIt,
+    disconnectAllObservers,
+  } = deps;
 
   async function checkAndPersistDarkPage(): Promise<void> {
     const isDefaultMethod =
       (await methodResolver.isDefaultMethod(window.document.documentURI))
       || (await methodResolver.isDefaultMethod(window.location.hostname));
-    
+
     if (!isDefaultMethod) return;
-    
-    const method = await methodResolver.getMethodForUrl(window.document.documentURI);
+
+    const method = await methodResolver.getMethodForUrl(
+      window.document.documentURI,
+    );
     const sheets = document.querySelectorAll('.dblt-ykjmwcnxmi');
-    
+
     for (const sheet of sheets) {
       sheet?.setAttribute('media', '(not all)');
     }

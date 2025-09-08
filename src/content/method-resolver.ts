@@ -1,5 +1,3 @@
-// Firefox WebExtensions API - using Chrome types as base
-declare const browser: typeof chrome;
 import type {
   AddonOptions,
   ConfiguredPages,
@@ -10,7 +8,6 @@ import type {
 import { methods } from '../methods/methods-with-executors';
 import { generate_urls } from '../common/generate-urls';
 
-
 interface MethodResolverDeps {
   isIframe: boolean;
   tabIdPromise: Promise<unknown>;
@@ -20,7 +17,13 @@ interface MethodResolverDeps {
 }
 
 export function createMethodResolver(deps: MethodResolverDeps) {
-  const { isIframe, tabIdPromise, getPrefs, getMergedConfigured, getConfiguredTabs } = deps;
+  const {
+    isIframe,
+    tabIdPromise,
+    getPrefs,
+    getMergedConfigured,
+    getConfiguredTabs,
+  } = deps;
 
   async function isDefaultMethod(url: string): Promise<boolean> {
     const prefs = getPrefs();
@@ -35,7 +38,7 @@ export function createMethodResolver(deps: MethodResolverDeps) {
           return false;
         }
       }
-      
+
       let tab_configuration: MethodIndex | boolean = false;
       const configuredTabs = getConfiguredTabs();
       if (Object.keys(configuredTabs).length > 0) {
@@ -70,7 +73,7 @@ export function createMethodResolver(deps: MethodResolverDeps) {
     if (forceMethod !== undefined) {
       return methods[forceMethod];
     }
-    
+
     const prefs = getPrefs();
     if (prefs.enabled) {
       if (isIframe) {
@@ -83,7 +86,7 @@ export function createMethodResolver(deps: MethodResolverDeps) {
           return methods[parent_method_number as number];
         }
       }
-      
+
       let tab_configuration: MethodIndex | boolean = false;
       const configuredTabs = getConfiguredTabs();
       if (Object.keys(configuredTabs).length > 0) {

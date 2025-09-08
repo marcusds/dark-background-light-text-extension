@@ -1,5 +1,3 @@
-// Firefox WebExtensions API - using Chrome types as base
-declare const browser: typeof chrome;
 import {
   get_merged_configured_common,
   get_prefs,
@@ -11,7 +9,6 @@ import { smart_generate_urls } from '../common/smart-generate-urls';
 import type { ConfiguredPages, MethodIndex } from '../common/types';
 import '../common/ui-style';
 import { CURRENT_TAB_LABEL } from '../consts';
-
 
 (async () => {
   function get_merged_configured(): Promise<ConfiguredPages> {
@@ -70,19 +67,19 @@ import { CURRENT_TAB_LABEL } from '../consts';
     if (!current_tab.active) {
       // this is the case for Fennec where pop-up is actually a tab
       // activating any tab other than our fake pop-up will close pop-up
-      browser.tabs.update(current_tab.id, { active: true });
+      browser.tabs.update(current_tab.id!, { active: true });
     }
   }
 
   let message: string | boolean = false;
   try {
-    await browser.tabs.executeScript(current_tab.id, {
+    await browser.tabs.executeScript(current_tab.id!, {
       code: '{}',
       runAt: 'document_start',
     });
   } catch {
     // Using empty catch block as the error value is not needed
-    const browserInfo = await (browser.runtime as any).getBrowserInfo();
+    const browserInfo = await browser.runtime.getBrowserInfo();
     message = `Modification of this page is not available due to ${browserInfo.name} restrictions`;
   }
   if (!message) {
