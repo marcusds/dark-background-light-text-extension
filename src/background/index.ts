@@ -375,7 +375,6 @@ function get_content_type(
 
 browser.webRequest.onHeadersReceived.addListener(
   (details) => {
-    alert('onHeadersReceived for CORS');
     if (
       details.type === 'stylesheet'
       || (is_probably_service_worker(details)

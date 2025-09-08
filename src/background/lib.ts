@@ -64,7 +64,6 @@ export function modify_cors(
   headers: browser.webRequest.HttpHeaders,
   details: browser.webRequest._OnHeadersReceivedDetails,
 ) {
-  alert('modify_cors');
   // Workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1393022
   if (details.documentUrl) {
     const url_obj = new URL(details.documentUrl);
