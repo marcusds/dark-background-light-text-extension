@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Simple Auto Dark Mode",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "browser_specific_settings": {
     "gecko": {
       "id": "SimpleAutoDarkMode@public",
