@@ -24,7 +24,7 @@
         "<all_urls>"
       ],
       "js": [
-        "content.js"
+        "sadm-content.js"
       ],
       "run_at": "document_start",
       "match_about_blank": true,
@@ -33,7 +33,7 @@
   ],
   "background": {
     "scripts": [
-      "background.js"
+      "sadm-background.js"
     ]
   },
   "commands": {

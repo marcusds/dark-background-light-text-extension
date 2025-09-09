@@ -63,7 +63,7 @@ export default (args) => {
         ...common_plugins,
       ],
       output: {
-        file: `${dest_dir}/content.js`,
+        file: `${dest_dir}/sadm-content.js`,
         ...output_opts,
       },
     },
@@ -72,7 +72,7 @@ export default (args) => {
       onwarn,
       plugins: [...common_plugins],
       output: {
-        file: `${dest_dir}/background.js`,
+        file: `${dest_dir}/sadm-background.js`,
         ...output_opts,
       },
     },
@@ -92,7 +92,7 @@ export default (args) => {
         ...common_plugins,
       ],
       output: {
-        file: `${dest_dir}/preferences.js`,
+        file: `${dest_dir}/sadm-preferences.js`,
         name: 'app',
         ...output_opts,
       },
@@ -102,7 +102,7 @@ export default (args) => {
       onwarn,
       plugins: [...common_plugins],
       output: {
-        file: `${dest_dir}/browser-action.js`,
+        file: `${dest_dir}/sadm-browser-action.js`,
         ...output_opts,
       },
     },
