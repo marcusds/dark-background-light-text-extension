@@ -1,6 +1,4 @@
 import type {
-  ConfiguredPages,
-  ConfiguredTabs,
   MethodIndex,
   MethodMetadataWithExecutors,
 } from '../common/types';
@@ -8,42 +6,29 @@ import { generate_urls } from '../common/generate-urls';
 import { isPageDark } from '../utils/isPageDark';
 import { DISABLED_ID } from '../methods/methods';
 
-interface DarkPageHandlerDeps {
-  methodResolver: {
-    isDefaultMethod: (url: string) => Promise<boolean>;
-    getMethodForUrl: (
-      url: string,
-      forceMethod?: MethodIndex,
-    ) => Promise<MethodMetadataWithExecutors>;
-  };
-  tabIdPromise: Promise<unknown>;
-  getMergedConfigured: () => ConfiguredPages;
-  getConfiguredTabs: () => ConfiguredTabs;
-  doIt: (
-    changes: { [s: string]: browser.storage.StorageChange },
+interface MethodResolver {
+  isDefaultMethod: (url: string) => Promise<boolean>;
+  getMethodForUrl: (
+    url: string,
     forceMethod?: MethodIndex,
-  ) => Promise<void>;
-  disconnectAllObservers: () => void;
+  ) => Promise<MethodMetadataWithExecutors>;
 }
 
-export function createDarkPageHandler(deps: DarkPageHandlerDeps) {
-  const {
-    methodResolver,
-    tabIdPromise,
-    getMergedConfigured,
-    getConfiguredTabs,
-    doIt,
-    disconnectAllObservers,
-  } = deps;
+export class DarkPageHandler {
+  constructor(
+    private methodResolver: MethodResolver,
+    private tabIdPromise: Promise<unknown>,
+    private disconnectAllObservers: () => void,
+  ) {}
 
-  async function checkAndPersistDarkPage(): Promise<void> {
+  async checkAndPersistDarkPage(): Promise<void> {
     const isDefaultMethod =
-      (await methodResolver.isDefaultMethod(window.document.documentURI))
-      || (await methodResolver.isDefaultMethod(window.location.hostname));
+      (await this.methodResolver.isDefaultMethod(window.document.documentURI))
+      || (await this.methodResolver.isDefaultMethod(window.location.hostname));
 
     if (!isDefaultMethod) return;
 
-    const method = await methodResolver.getMethodForUrl(
+    const method = await this.methodResolver.getMethodForUrl(
       window.document.documentURI,
     );
     const sheets = document.querySelectorAll('.dblt-ykjmwcnxmi');
@@ -53,25 +38,25 @@ export function createDarkPageHandler(deps: DarkPageHandlerDeps) {
     }
 
     if (isPageDark(method)) {
-      disconnectAllObservers();
+      this.disconnectAllObservers();
       for (const sheet of sheets) {
         sheet?.setAttribute('media', '');
       }
       const urlKey = generate_urls(window.document.documentURI)[0];
-      const mergedConfigured = getMergedConfigured();
+      const mergedConfigured = window.merged_configured;
       if (
         !mergedConfigured[urlKey]
         || mergedConfigured[urlKey] !== DISABLED_ID
       ) {
-        const tabId = await tabIdPromise;
-        const configuredTabs = getConfiguredTabs();
+        const tabId = await this.tabIdPromise;
+        const configuredTabs = window.configured_tabs;
         const url = configuredTabs?.[tabId as number];
         await browser.runtime.sendMessage({
           action: 'set_configured_page',
           key: url,
           value: DISABLED_ID,
         });
-        doIt({}, DISABLED_ID);
+        window.do_it({}, DISABLED_ID);
       }
     } else {
       sheets.forEach((link) => {
@@ -79,8 +64,4 @@ export function createDarkPageHandler(deps: DarkPageHandlerDeps) {
       });
     }
   }
-
-  return {
-    checkAndPersistDarkPage,
-  };
 }

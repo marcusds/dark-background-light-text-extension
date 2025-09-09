@@ -5,13 +5,11 @@ interface DomObserverDeps {
   methodResolver: {
     getMethodForUrl: (url: string, forceMethod?: MethodIndex) => Promise<MethodMetadataWithExecutors>;
   };
-  darkPageHandler: {
-    checkAndPersistDarkPage: () => Promise<void>;
-  };
 }
 
 export function createDomObserver(deps: DomObserverDeps) {
-  const { methodResolver, darkPageHandler } = deps;
+  const { methodResolver } = deps;
+  let darkPageHandler: { checkAndPersistDarkPage: () => Promise<void> } | null = null;
   const observers: MutationObserver[] = [];
   let disconnected = false;
   let timeout: number | undefined;
@@ -34,7 +32,9 @@ export function createDomObserver(deps: DomObserverDeps) {
           && (mutation.attributeName === 'class'
             || mutation.attributeName?.startsWith('data-'))
         ) {
-          darkPageHandler.checkAndPersistDarkPage();
+          if (darkPageHandler) {
+            darkPageHandler.checkAndPersistDarkPage();
+          }
           const method = await methodResolver.getMethodForUrl(window.document.documentURI);
           if (isPageDark(method)) {
             disconnectAll();
@@ -65,8 +65,13 @@ export function createDomObserver(deps: DomObserverDeps) {
     }
   }
 
+  function setDarkPageHandler(handler: { checkAndPersistDarkPage: () => Promise<void> }): void {
+    darkPageHandler = handler;
+  }
+
   return {
     disconnectAll,
     observeClassListChanges,
+    setDarkPageHandler,
   };
 }

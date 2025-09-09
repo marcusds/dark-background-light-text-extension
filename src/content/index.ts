@@ -8,7 +8,7 @@ import type {
 } from '../common/types';
 import { detectIframe } from './iframe-detector';
 import { createMethodResolver } from './method-resolver';
-import { createDarkPageHandler } from './dark-page-handler';
+import { DarkPageHandler } from './dark-page-handler';
 import { createDomObserver } from './dom-observer';
 import { createMessageHandler } from './message-handler';
 
@@ -58,20 +58,18 @@ let current_method_promise: Promise<MethodMetadataWithExecutors> = new Promise(
 );
 let current_method_executor: MethodExecutor | undefined;
 
-// Initialize dark page handler and DOM observer
-const darkPageHandler = createDarkPageHandler({
-  methodResolver,
-  tabIdPromise: tabId_promise,
-  getMergedConfigured: () => window.merged_configured,
-  getConfiguredTabs: () => window.configured_tabs,
-  doIt: (changes, forceMethod) => window.do_it(changes, forceMethod),
-  disconnectAllObservers: () => domObserver.disconnectAll(),
-});
-
+// Initialize DOM observer first (needed for disconnectAll reference)
 const domObserver = createDomObserver({
   methodResolver,
-  darkPageHandler,
 });
+
+// Initialize dark page handler
+const darkPageHandler = new DarkPageHandler(methodResolver, tabId_promise, () =>
+  domObserver.disconnectAll(),
+);
+
+// Set up dom observer with dark page handler
+domObserver.setDarkPageHandler(darkPageHandler);
 
 document.addEventListener('DOMContentLoaded', () => {
   darkPageHandler.checkAndPersistDarkPage();
