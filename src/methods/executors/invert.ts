@@ -20,12 +20,15 @@ export class InvertMethod implements MethodExecutor {
     }
   }
 
-  unload_from_window() {
+  unload_from_window(_light: boolean, callback?: () => void) {
     const el = this.window.document.querySelector(
       '#mybpwaycfxccmnp-dblt-backdrop-filter',
     );
     if (el !== null) {
       el.parentElement!.removeChild(el);
+    }
+    if (callback) {
+      callback();
     }
   }
 }

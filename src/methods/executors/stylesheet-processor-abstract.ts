@@ -115,7 +115,7 @@ export abstract class StylesheetProcessorAbstract {
     });
   }
 
-  unload_from_window(light: boolean) {
+  unload_from_window(light: boolean, callback?: () => void) {
     this.stop = true;
     if (this.handle_visibilitychange) {
       this.window.document.removeEventListener(
@@ -125,26 +125,38 @@ export abstract class StylesheetProcessorAbstract {
     }
     if (!light) {
       // "light unloading" (used in case when document is about to be destroyed)
+      let pendingOperations = this.window.document.styleSheets.length;
+      const checkComplete = () => {
+        console.log('checkComplete', pendingOperations);
+        pendingOperations--;
+        if (pendingOperations === 0 && callback) {
+          callback();
+        }
+      };
+
       for (const sheet of this.window.document.styleSheets) {
         const ownerNode = sheet.ownerNode as HTMLElement | null;
         if (!ownerNode) {
+          pendingOperations--;
           continue;
         }
         if (ownerNode.hasAttribute(imported_flag_attribute)) {
-          setTimeout(() => {
+          requestAnimationFrame(() => {
             ownerNode!.parentNode?.removeChild(ownerNode!);
-          }, 0);
+            checkComplete();
+          });
         } else {
           const newNode = ownerNode.cloneNode(true);
-          setTimeout(() => {
+          requestAnimationFrame(() => {
             ownerNode!.parentNode?.insertBefore(
               newNode,
               ownerNode!.nextSibling,
             );
-            setTimeout(() => {
+            requestAnimationFrame(() => {
               ownerNode!.parentNode?.removeChild(ownerNode!);
-            }, 0);
-          }, 0);
+              checkComplete();
+            });
+          });
         }
       }
       if (this.prev_inline_override_stylesheet) {
@@ -155,6 +167,16 @@ export abstract class StylesheetProcessorAbstract {
         this.prev_inline_override_stylesheet = undefined;
         this.overridden_inline_styles.clear();
         this.inline_overrides_style.length = 0;
+      }
+
+      // If no pending operations, call callback immediately
+      if (pendingOperations === 0 && callback) {
+        callback();
+      }
+    } else {
+      // For light unloading, call callback immediately since no async operations
+      if (callback) {
+        callback();
       }
     }
   }

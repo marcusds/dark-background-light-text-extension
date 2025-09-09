@@ -21,11 +21,5 @@ ${
 ${'' /* #29 */}\
   color: ${default_foreground_color} !important;
 }
-
-
-${'' /* Bittorrent sync webui fix */}\
-.qrCode > canvas {
-  border: 10px white solid;
-}
 `;
 }

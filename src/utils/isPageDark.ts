@@ -12,7 +12,16 @@ function checkByElement(invertCheck = false) {
     testDiv.style.fontSize = '0';
     testDiv.style.overflow = 'hidden';
     testDiv.innerText = '.';
-    document.body.appendChild(testDiv);
+
+    /*testDiv.style.border = '2px solid green';
+    testDiv.style.width = '200px';
+    testDiv.style.height = '200px';
+    testDiv.style.fontSize = '20px';
+    testDiv.style.position = 'absolute';
+    testDiv.style.top = '0';
+    testDiv.style.left = '0';
+    testDiv.innerText = 'TEST ETST TEST TST';*/
+    document.body?.appendChild(testDiv);
   }
   const computedColor = window.getComputedStyle(testDiv).color;
   const match = computedColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
@@ -56,7 +65,9 @@ const isDarkPref = window.matchMedia('(prefers-color-scheme: dark)').matches;
 const hasDarkClass = (els: HTMLElement[] | null) => {
   if (!els) return false;
   for (const el of els) {
-    if (darkClassNames.some((cls) => el.getAttribute('class')?.includes(cls))) {
+    if (
+      darkClassNames.some((cls) => el?.getAttribute('class')?.includes(cls))
+    ) {
       return true;
     }
   }
@@ -67,7 +78,7 @@ const hasDarkData = (els: HTMLElement[] | null) => {
   if (!els) return false;
   for (const el of els) {
     if (
-      el.hasAttribute('dark') // Youtube
+      el?.hasAttribute('dark') // Youtube
       || darkDatas.some(
         (v) =>
           (isDarkPref && el?.dataset?.[v]?.includes('auto'))
@@ -84,7 +95,7 @@ const hasDarkData = (els: HTMLElement[] | null) => {
 const hasDarkStyle = (els: HTMLElement[] | null) => {
   if (!els) return false;
   for (const el of els) {
-    const style = el.getAttribute('style');
+    const style = el?.getAttribute('style');
     if (style && /color-scheme\s*:\s*dark/i.test(style)) {
       return true;
     }
@@ -92,7 +103,10 @@ const hasDarkStyle = (els: HTMLElement[] | null) => {
   return false;
 };
 
-export function isPageDark(method?: MethodMetadataWithExecutors) {
+export function isPageDark(
+  method?: MethodMetadataWithExecutors,
+  retry = false,
+) {
   const doc = document.documentElement;
   const body = document.body;
   const htmlEl = window.document.getElementsByTagName('html')[0];
@@ -104,6 +118,8 @@ export function isPageDark(method?: MethodMetadataWithExecutors) {
   if (hasDarkData(allEls)) return true;
 
   if (hasDarkStyle(allEls)) return true;
+
+  if (retry) return false;
 
   return checkByElement(method?.label === 'invert');
 }

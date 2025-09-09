@@ -11,6 +11,7 @@ import { createMethodResolver } from './method-resolver';
 import { DarkPageHandler } from './dark-page-handler';
 import { createDomObserver } from './dom-observer';
 import { createMessageHandler } from './message-handler';
+import { methods } from '../methods/methods-with-executors';
 
 const tabId_promise = browser.runtime.sendMessage({ action: 'query_tabId' });
 const is_iframe = detectIframe();
@@ -29,7 +30,9 @@ declare global {
     do_it: (
       changes: { [s: string]: browser.storage.StorageChange },
       forceMethod?: MethodIndex,
+      unloadCallback?: () => void,
     ) => Promise<void>;
+    _sadam_test: boolean | undefined;
   }
 }
 
@@ -59,9 +62,7 @@ let current_method_promise: Promise<MethodMetadataWithExecutors> = new Promise(
 let current_method_executor: MethodExecutor | undefined;
 
 // Initialize DOM observer first (needed for disconnectAll reference)
-const domObserver = createDomObserver({
-  methodResolver,
-});
+const domObserver = createDomObserver(methodResolver);
 
 // Initialize dark page handler
 const darkPageHandler = new DarkPageHandler(methodResolver, tabId_promise, () =>
@@ -81,12 +82,12 @@ window.do_it = async function do_it(
     [s: string]: browser.storage.StorageChange;
   },
   forceMethod?: MethodIndex,
+  unloadCallback?: () => void,
 ): Promise<void> {
   try {
-    const new_method = await methodResolver.getMethodForUrl(
-      window.document.documentURI,
-      forceMethod,
-    );
+    const new_method = forceMethod
+      ? methods[forceMethod]
+      : await methodResolver.getMethodForUrl(window.document.documentURI);
     if (resolve_current_method_promise) {
       resolve_current_method_promise(new_method);
       resolve_current_method_promise = null;
@@ -124,7 +125,9 @@ window.do_it = async function do_it(
         }
       }
       if (current_method_executor) {
-        current_method_executor.unload_from_window();
+        current_method_executor.unload_from_window(false, () => {
+          unloadCallback?.();
+        });
         current_method_executor = undefined;
       }
       if (new_method.executor) {

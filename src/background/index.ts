@@ -179,6 +179,46 @@ browser.runtime.onMessage.addListener(async (message: any, sender: any) => {
         await method_change(message.key || parsed?.host, message.value);
         break;
       }
+      case 'log_dark_page_check': {
+        const timestamp = new Date().toISOString();
+        const logEntry = {
+          url: message.key,
+          isDark: message.value,
+          timestamp: timestamp,
+        };
+        // Store in browser storage for persistence
+        try {
+          const existingLogs = await browser.storage.local.get('darkPageLogs');
+          const logs = existingLogs.darkPageLogs || [];
+          logs.push(logEntry);
+          // Keep only last 100 entries to prevent storage overflow
+          if (logs.length > 100) {
+            logs.splice(0, logs.length - 100);
+          }
+          await browser.storage.local.set({ darkPageLogs: logs });
+        } catch (error) {
+          console.error('Failed to store dark page log:', error);
+        }
+        break;
+      }
+      case 'get_dark_page_logs': {
+        try {
+          const existingLogs = await browser.storage.local.get('darkPageLogs');
+          const logs = existingLogs.darkPageLogs || [];
+          // Find the most recent log entry for the given URL
+          const urlLogs = logs.filter(
+            (log: { url: string }) => log.url === message.key,
+          );
+          if (urlLogs.length > 0) {
+            const mostRecent = urlLogs[urlLogs.length - 1];
+            return mostRecent.isDark;
+          }
+          return null; // No logs found for this URL
+        } catch (error) {
+          console.error('Failed to retrieve dark page logs:', error);
+          return null;
+        }
+      }
       default:
         console.error('Unknown message action:', message.action);
         break;
@@ -230,7 +270,7 @@ async function send_prefs(changes: {
         window.configured_tabs = ${JSON.stringify(configured_tabs)};
         window.rendered_stylesheets = ${JSON.stringify(rendered_stylesheets)};
         if (window.content_script_state !== 'registered_content_script_first') { /* #226 part 1 workaround */
-            window.do_it(${JSON.stringify(changes)});
+            console.log("sadm DOIT!111");window.do_it(${JSON.stringify(changes)});
         }
     `;
   for (const key of Object.keys(from_manifest)) {

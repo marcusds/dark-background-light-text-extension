@@ -107,7 +107,7 @@ export interface MethodMetadataWithStylesheets extends MethodMetadataBare {
 }
 export interface MethodExecutor {
   load_into_window(): void;
-  unload_from_window(): void;
+  unload_from_window(light?: boolean, callback?: () => void): void;
 }
 export interface MethodExecutorStatic {
   new (window: Window, options: AddonOptions): MethodExecutor;

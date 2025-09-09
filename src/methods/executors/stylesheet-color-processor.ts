@@ -188,8 +188,13 @@ export class StylesheetColorProcessor
       lighten_or_darken_color(color_array, !is_dark_background, default_colors);
   }
 
-  unload_from_window() {
-    StylesheetProcessorAbstract.prototype.unload_from_window.call(this, false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  unload_from_window(_light = false, callback?: () => void) {
+    StylesheetProcessorAbstract.prototype.unload_from_window.call(
+      this,
+      false,
+      callback,
+    );
   }
 
   all_sheets_have_been_processed() {

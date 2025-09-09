@@ -1,15 +1,15 @@
 import { darkDatas, isPageDark } from '../utils/isPageDark';
 import type { MethodIndex, MethodMetadataWithExecutors } from '../common/types';
 
-interface DomObserverDeps {
-  methodResolver: {
-    getMethodForUrl: (url: string, forceMethod?: MethodIndex) => Promise<MethodMetadataWithExecutors>;
-  };
-}
-
-export function createDomObserver(deps: DomObserverDeps) {
-  const { methodResolver } = deps;
-  let darkPageHandler: { checkAndPersistDarkPage: () => Promise<void> } | null = null;
+export function createDomObserver(methodResolver: {
+  getMethodForUrl: (
+    url: string,
+    forceMethod?: MethodIndex,
+  ) => Promise<MethodMetadataWithExecutors>;
+}) {
+  let darkPageHandler: {
+    checkAndPersistDarkPage: (retry: boolean) => Promise<void>;
+  } | null = null;
   const observers: MutationObserver[] = [];
   let disconnected = false;
   let timeout: number | undefined;
@@ -24,7 +24,7 @@ export function createDomObserver(deps: DomObserverDeps) {
 
   function observeClassListChanges(): void {
     timeout = setTimeout(() => disconnectAll(), 45000);
-    
+
     const callback = async (mutationsList: MutationRecord[]) => {
       for (const mutation of mutationsList) {
         if (
@@ -33,10 +33,12 @@ export function createDomObserver(deps: DomObserverDeps) {
             || mutation.attributeName?.startsWith('data-'))
         ) {
           if (darkPageHandler) {
-            darkPageHandler.checkAndPersistDarkPage();
+            darkPageHandler.checkAndPersistDarkPage(true);
           }
-          const method = await methodResolver.getMethodForUrl(window.document.documentURI);
-          if (isPageDark(method)) {
+          const method = await methodResolver.getMethodForUrl(
+            window.document.documentURI,
+          );
+          if (isPageDark(method, true)) {
             disconnectAll();
           }
           break;
@@ -65,7 +67,9 @@ export function createDomObserver(deps: DomObserverDeps) {
     }
   }
 
-  function setDarkPageHandler(handler: { checkAndPersistDarkPage: () => Promise<void> }): void {
+  function setDarkPageHandler(handler: {
+    checkAndPersistDarkPage: () => Promise<void>;
+  }): void {
     darkPageHandler = handler;
   }
 
